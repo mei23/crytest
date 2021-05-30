@@ -1,6 +1,32 @@
 import * as crypto from 'crypto';
 const { createSignatureString } = require('http-signature-header');
 
+export class HttpSignatureSigner {
+	private privateKey: string;
+	private keyId: string;
+	private hashAlgorithm: SignatureHashAlgorithm = 'sha256';
+
+	constructor(privateKey: string, keyId: string) {
+		this.privateKey = privateKey;
+		this.keyId = keyId;
+	}
+
+	public signToRequest(requestOptions: HttpRequestOptions, includeHeaders: string[]) {
+		const signingString = genSigningString(requestOptions, includeHeaders);
+		const signature = genSignature(signingString, this.privateKey, { hashAlgorithm: this.hashAlgorithm });
+		const signatureHeader = genSignatureHeader(includeHeaders, this.keyId, signature);
+		Object.assign(requestOptions.headers, {
+			signature: signatureHeader
+		});
+
+		return {
+			signingString,
+			signature,
+			signatureHeader,
+		}
+	}
+}
+
 export type HttpRequestOptions = {
 	url: string;
 	method: string;
@@ -13,11 +39,11 @@ export type SignatureOptions = {
 
 export type SignatureHashAlgorithm = 'sha256';	// TODO
 
-export function genSigningString(includeHeaders: string[], requestOptions: HttpRequestOptions) {
+export function genSigningString(requestOptions: HttpRequestOptions, includeHeaders: string[]) {
 	return createSignatureString({
 		includeHeaders,
 		requestOptions,
-	});
+	}) as string;
 }
 
 export function genSignature(signingString: string, privateKey: string, signatureOptions?: SignatureOptions) {
