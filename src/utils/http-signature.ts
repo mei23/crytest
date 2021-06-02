@@ -1,22 +1,33 @@
 import * as crypto from 'crypto';
 const { createSignatureString } = require('http-signature-header');
 
+export type RequestOptions = {
+	url: string;
+	method: string;
+	headers: Record<string, string>;
+};
+
+export type SignatureKey = {
+	privateKeyPem: string;
+	keyId: string;
+};
+
+export type SignatureHashAlgorithm = 'sha256' | 'sha384' | 'sha512';
+
 export class HttpSignatureSigner {
-	private privateKey: string;
-	private keyId: string;
+	private key: SignatureKey;
 	public hashAlgorithm: SignatureHashAlgorithm = 'sha256';
 
-	constructor(privateKey: string, keyId: string) {
-		this.privateKey = privateKey;
-		this.keyId = keyId;
+	constructor(key: SignatureKey) {
+		this.key = key;
 	}
 
-	public signToRequest(requestOptions: HttpRequestOptions, includeHeaders: string[]) {
+	public signToRequest(requestOptions: RequestOptions, includeHeaders: string[]) {
 		const signingString = genSigningString(requestOptions, includeHeaders);
-		const signature = genSignature(signingString, this.privateKey, this.hashAlgorithm);
-		const signatureHeader = genSignatureHeader(includeHeaders, this.keyId, signature, this.hashAlgorithm);
+		const signature = genSignature(signingString, this.key.privateKeyPem, this.hashAlgorithm);
+		const signatureHeader = genSignatureHeader(includeHeaders, this.key.keyId, signature, this.hashAlgorithm);
 		Object.assign(requestOptions.headers, {
-			signature: signatureHeader
+			Signature: signatureHeader
 		});
 
 		return {
@@ -27,27 +38,7 @@ export class HttpSignatureSigner {
 	}
 }
 
-export type HttpRequestOptions = {
-	url: string;
-	method: string;
-	headers: Record<string, string>;
-};
-
-export type SignatureOptions = {
-	hashAlgorithm?: SignatureHashAlgorithm;
-};
-
-export type DigestHashAlgorithm = 'sha256' | 'sha512';
-export type SignatureHashAlgorithm = 'sha256' | 'sha384' | 'sha512';
-
-export function genDigestHeader(body: string, hashAlgorithm: DigestHashAlgorithm = 'sha256') {
-	const hash = crypto.createHash(hashAlgorithm);
-	hash.update(body);
-	const digest = hash.digest('base64');
-	return `${hashAlgorithm === 'sha256' ? 'SHA-256' : 'SHA-512'}=${digest}`;
-}
-
-export function genSigningString(requestOptions: HttpRequestOptions, includeHeaders: string[]) {
+export function genSigningString(requestOptions: RequestOptions, includeHeaders: string[]) {
 	return createSignatureString({
 		includeHeaders,
 		requestOptions,
@@ -56,7 +47,6 @@ export function genSigningString(requestOptions: HttpRequestOptions, includeHead
 
 export function genSignature(signingString: string, privateKey: string, hashAlgorithm: SignatureHashAlgorithm = 'sha256') {
 	// TODO: privateKeyは本当にRSA?
-
 	const sign = crypto.createSign(hashAlgorithm);
 	sign.update(signingString);
 	sign.end();

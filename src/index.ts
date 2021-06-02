@@ -1,11 +1,11 @@
 import { inspect } from 'util';
-import { HttpRequestOptions, genSigningString, genSignature, genSignatureHeader, HttpSignatureSigner } from './utils/http-signature';
+import { RequestOptions, genSigningString, genSignature, genSignatureHeader, HttpSignatureSigner } from './utils/http-signature';
 import { genRsaKeyPair } from './utils/keypair';
 
 async function main() {
 	const keypair = await genRsaKeyPair();
 
-	const requestOptions: HttpRequestOptions = {
+	const requestOptions: RequestOptions = {
 		url: 'https://host2.test/inbox',
 		method: 'POST',
 		headers: {
@@ -30,7 +30,7 @@ async function main() {
 		signatureHeader,
 	}));
 
-	const sn = new HttpSignatureSigner(keypair.privateKey, 'key1');
+	const sn = new HttpSignatureSigner({ privateKeyPem: keypair.privateKey, keyId: 'key1' });
 	const re = sn.signToRequest(requestOptions, includeHeaders);
 	console.log(inspect(requestOptions));
 	console.log(inspect(re));
