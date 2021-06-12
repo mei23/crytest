@@ -1,9 +1,9 @@
 import * as assert from 'assert';
-import { genAuthorizationHeader, genSignature, genSignatureHeader, genSigningString } from '../src/utils/http-signature';
+import { HttpSignature } from '../src/utils/http-signature';
 
 describe('HTTP Signature', () => {
 	it('genSigningString', () => {
-		const signingString = genSigningString({
+		const signingString = HttpSignature.genSigningString({
 			url: 'https://host1.example.com/path',
 			method: 'GET',
 			headers: {
@@ -52,7 +52,7 @@ describe('HTTP Signature', () => {
 			'J9HgWyymBJcN4rTR/lGbS0I=\n' +
 			'-----END PRIVATE KEY-----\n';
 
-		const signature = genSignature('abc', privateKey, 'sha256');
+		const signature = HttpSignature.genSignature('abc', privateKey, 'sha256');
 
 		assert.strictEqual(
 			signature,
@@ -61,7 +61,7 @@ describe('HTTP Signature', () => {
 	});
 
 	it('genAuthorizationHeader', () => {
-		const header = genAuthorizationHeader(['foo', 'bar'], 'KeyIdaaa', 'Signature');
+		const header = HttpSignature.genAuthorizationHeader(['foo', 'bar'], 'KeyIdaaa', 'Signature');
 
 		assert.strictEqual(
 			header,
@@ -70,7 +70,7 @@ describe('HTTP Signature', () => {
 	});
 
 	it('genSignatureHeader', () => {
-		const header = genSignatureHeader(['foo', 'bar'], 'KeyIdaaa', 'Signature');
+		const header = HttpSignature.genSignatureHeader(['foo', 'bar'], 'KeyIdaaa', 'Signature');
 
 		assert.strictEqual(
 			header,

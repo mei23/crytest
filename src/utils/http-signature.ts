@@ -14,7 +14,7 @@ export type SignatureKey = {
 
 export type SignatureHashAlgorithm = 'sha256' | 'sha384' | 'sha512';
 
-export class HttpSignatureSigner {
+export class HttpSignature {
 	private key: SignatureKey;
 	public hashAlgorithm: SignatureHashAlgorithm = 'sha256';
 
@@ -23,9 +23,9 @@ export class HttpSignatureSigner {
 	}
 
 	public signToRequest(requestOptions: RequestOptions, includeHeaders: string[]) {
-		const signingString = genSigningString(requestOptions, includeHeaders);
-		const signature = genSignature(signingString, this.key.privateKeyPem, this.hashAlgorithm);
-		const signatureHeader = genSignatureHeader(includeHeaders, this.key.keyId, signature, this.hashAlgorithm);
+		const signingString = HttpSignature.genSigningString(requestOptions, includeHeaders);
+		const signature = HttpSignature.genSignature(signingString, this.key.privateKeyPem, this.hashAlgorithm);
+		const signatureHeader = HttpSignature.genSignatureHeader(includeHeaders, this.key.keyId, signature, this.hashAlgorithm);
 		Object.assign(requestOptions.headers, {
 			Signature: signatureHeader
 		});
@@ -36,28 +36,29 @@ export class HttpSignatureSigner {
 			signatureHeader,
 		}
 	}
-}
 
-export function genSigningString(requestOptions: RequestOptions, includeHeaders: string[]) {
-	return createSignatureString({
-		includeHeaders,
-		requestOptions,
-	}) as string;
-}
-
-export function genSignature(signingString: string, privateKey: string, hashAlgorithm: SignatureHashAlgorithm = 'sha256') {
-	// TODO: privateKeyは本当にRSA?
-	const sign = crypto.createSign(hashAlgorithm);
-	sign.update(signingString);
-	sign.end();
-
-	return sign.sign(privateKey, 'base64');
-}
-
-export function genAuthorizationHeader(includeHeaders: string[], keyId: string, signature: string, hashAlgorithm: SignatureHashAlgorithm = 'sha256') {
-	return `Signature ${genSignatureHeader(includeHeaders, keyId, signature, hashAlgorithm)}`;
-}
-
-export function genSignatureHeader(includeHeaders: string[], keyId: string, signature: string, hashAlgorithm: SignatureHashAlgorithm = 'sha256') {
-	return `keyId="${keyId}",algorithm="rsa-${hashAlgorithm}",headers="${includeHeaders.join(' ')}",signature="${signature}"`;
+	public static genSigningString(requestOptions: RequestOptions, includeHeaders: string[]) {
+		return createSignatureString({
+			includeHeaders,
+			requestOptions,
+		}) as string;
+	}
+	
+	public static genSignature(signingString: string, privateKey: string, hashAlgorithm: SignatureHashAlgorithm = 'sha256') {
+		// TODO: privateKeyは本当にRSA?
+		const sign = crypto.createSign(hashAlgorithm);
+		sign.update(signingString);
+		sign.end();
+	
+		return sign.sign(privateKey, 'base64');
+	}
+	
+	public static genAuthorizationHeader(includeHeaders: string[], keyId: string, signature: string, hashAlgorithm: SignatureHashAlgorithm = 'sha256') {
+		return `Signature ${HttpSignature.genSignatureHeader(includeHeaders, keyId, signature, hashAlgorithm)}`;
+	}
+	
+	public static  genSignatureHeader(includeHeaders: string[], keyId: string, signature: string, hashAlgorithm: SignatureHashAlgorithm = 'sha256') {
+		return `keyId="${keyId}",algorithm="rsa-${hashAlgorithm}",headers="${includeHeaders.join(' ')}",signature="${signature}"`;
+	}
+	
 }

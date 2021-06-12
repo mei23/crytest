@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import { RequestOptions, HttpSignatureSigner, SignatureKey } from './http-signature';
+import { RequestOptions, HttpSignature, SignatureKey } from './http-signature';
 
 export function genSignedPost(key: SignatureKey, url: string, body: string, headers: Record<string, string>) {
 	const u = new URL(url);
@@ -11,11 +11,11 @@ export function genSignedPost(key: SignatureKey, url: string, body: string, head
 			'Date': new Date().toUTCString(),
 			'Host': u.hostname,
 			'Content-Type': 'application/activity+json',
-			'Digest': genDigestHeader(body, 'sha256'),
+			'Digest': genDigestHeader(body),
 		}, headers),
 	};
 
-	const signer = new HttpSignatureSigner(key);
+	const signer = new HttpSignature(key);
 
 	const result = signer.signToRequest(request, ['(request-target)', 'date', 'host', 'digest']);
 
@@ -40,7 +40,7 @@ export function genSignedGet(key: SignatureKey, url: string, headers: Record<str
 		}, headers),
 	};
 
-	const signer = new HttpSignatureSigner(key);
+	const signer = new HttpSignature(key);
 
 	const result = signer.signToRequest(request, ['(request-target)', 'date', 'host', 'accept']);
 
