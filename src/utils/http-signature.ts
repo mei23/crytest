@@ -48,7 +48,7 @@ export class HttpSignature {
 			requestOptions,
 		}) as string;
 	}
-	
+
 	public static genSignature(signingString: string, privateKey: string, hashAlgorithm: SignatureHashAlgorithm = 'sha256') {
 		const sign = crypto.createSign(hashAlgorithm);
 		sign.update(signingString);
@@ -56,14 +56,12 @@ export class HttpSignature {
 	
 		return sign.sign(privateKey, 'base64');
 	}
-	
+
 	public static genAuthorizationHeader(includeHeaders: string[], keyId: string, signature: string, hashAlgorithm: SignatureAlgorithm = 'rsa-sha256') {
 		return `Signature ${HttpSignature.genSignatureHeader(includeHeaders, keyId, signature, hashAlgorithm)}`;
 	}
-	
+
 	public static genSignatureHeader(includeHeaders: string[], keyId: string, signature: string, algorithm: SignatureAlgorithm = 'rsa-sha256') {
-		// TODO: privateKeyは本当にRSA?
 		return `keyId="${keyId}",algorithm="${algorithm}",headers="${includeHeaders.join(' ')}",signature="${signature}"`;
 	}
-	
 }
