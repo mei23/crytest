@@ -13,6 +13,7 @@
 		"noLib": false,
 		"esModuleInterop": true,
 		"outDir": "built",
+		"declaration": true
 	},
 	"compileOnSave": false,
 	"include": [
