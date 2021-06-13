@@ -1,6 +1,6 @@
 import { inspect } from 'util';
 import { RequestOptions, HttpSignature } from './http-signature';
-import { genRsaKeyPair } from './keypair';
+import { genEd448KeyPair, genRsaKeyPair } from './keypair';
 
 async function main() {
 	const keypair = await genRsaKeyPair();
@@ -30,7 +30,9 @@ async function main() {
 		signatureHeader,
 	}));
 
-	const sn = new HttpSignature({ privateKeyPem: keypair.privateKey, keyId: 'key1' });
+	const kp = await genEd448KeyPair();
+
+	const sn = new HttpSignature({ privateKeyPem: kp.privateKey, keyId: 'key1' });
 	const re = sn.signToRequest(requestOptions, includeHeaders);
 	console.log(inspect(requestOptions));
 	console.log(inspect(re));

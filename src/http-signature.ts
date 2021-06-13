@@ -29,40 +29,32 @@ type ParsedSignature = {
 	keyId: string;
 };
 
-export class HttpSignatureVerifier {
-	private publicKeyPem: string;
-
-	constructor(publicKeyPem: string) {
-		this.publicKeyPem = publicKeyPem;
+export function verifySignature(parsed: ParsedSignature, publicKeyPem: string) {
+	let legacyKeyAlg: string | undefined;
+	let legacyHashAlg: string | undefined;
+	const m = parsed.params.algorithm?.match(/^(rsa|hmac|ecdsa)-(sha(?:1|224|256|384|512))$/);
+	if (m) {
+		legacyKeyAlg = m[1],
+		legacyHashAlg = m[2];
 	}
 
-	public verify(parsed: ParsedSignature) {
-		let legacyKeyAlg: string | undefined;
-		let legacyHashAlg: string | undefined;
-		const m = parsed.params.algorithm?.match(/^(rsa|hmac|ecdsa)-(sha(?:1|256|512))$/);
-		if (m) {
-			legacyKeyAlg = m[1],
-			legacyHashAlg = m[2];
-		}
+	const k = crypto.createPublicKey(publicKeyPem);
 
-		const k = crypto.createPublicKey(this.publicKeyPem);
+	if (legacyKeyAlg) {
+		if (k.asymmetricKeyType === 'rsa' && legacyKeyAlg !== 'rsa') throw 'rsa';
+		if (k.asymmetricKeyType === 'ec' && legacyKeyAlg !== 'ecdsa') throw 'ec';
+		if (k.asymmetricKeyType === 'ed25519') throw 'ed25519';
+		if (k.asymmetricKeyType === 'ed448') throw 'ed448';
+	}
 
-		if (legacyKeyAlg) {
-			if (k.asymmetricKeyType === 'rsa' && legacyKeyAlg !== 'rsa') throw 'rsa';
-			if (k.asymmetricKeyType === 'ec' && legacyKeyAlg !== 'ecdsa') throw 'ec';
-			if (k.asymmetricKeyType === 'ed25519') throw 'ed25519';
-			if (k.asymmetricKeyType === 'ed448') throw 'ed448';
-		}
-
-		if (k.asymmetricKeyType === 'ed25519' || k.asymmetricKeyType === 'ed448') {
-			return crypto.verify(null, Buffer.from(parsed.signingString), this.publicKeyPem, Buffer.from(parsed.params.signature, 'base64'));
-		} else if (k.asymmetricKeyType === 'rsa') {
-			return crypto.verify(legacyHashAlg || 'sha256', Buffer.from(parsed.signingString), this.publicKeyPem, Buffer.from(parsed.params.signature, 'base64'));
-		} else if (k.asymmetricKeyType === 'ec') {
-			return crypto.verify(legacyHashAlg, Buffer.from(parsed.signingString), this.publicKeyPem, Buffer.from(parsed.params.signature, 'base64'));
-		} else {
-			throw 'unsupported';
-		}
+	if (k.asymmetricKeyType === 'ed25519' || k.asymmetricKeyType === 'ed448') {
+		return crypto.verify(null, Buffer.from(parsed.signingString), publicKeyPem, Buffer.from(parsed.params.signature, 'base64'));
+	} else if (k.asymmetricKeyType === 'rsa') {
+		return crypto.verify(legacyHashAlg || 'sha256', Buffer.from(parsed.signingString), publicKeyPem, Buffer.from(parsed.params.signature, 'base64'));
+	} else if (k.asymmetricKeyType === 'ec') {
+		return crypto.verify(legacyHashAlg, Buffer.from(parsed.signingString), publicKeyPem, Buffer.from(parsed.params.signature, 'base64'));
+	} else {
+		throw 'unsupported';
 	}
 }
 
@@ -75,12 +67,13 @@ export class HttpSignature {
 	}
 
 	public signToRequest(requestOptions: RequestOptions, includeHeaders: string[]) {
-		const signingString = HttpSignature.genSigningString(requestOptions, includeHeaders);
-		const signature = HttpSignature.genSignature(signingString, this.key.privateKeyPem, this.hashAlgorithm);
 		const keyAlgorithm = HttpSignature.detectKeyAlgorithm(this.key.privateKeyPem);
 
-		let signatureAlgorithm: SignatureAlgorithm | undefined;
+		const signingString =  HttpSignature.genSigningString(requestOptions, includeHeaders);
+		const signature = HttpSignature.genSignature(signingString, this.key.privateKeyPem,
+				(keyAlgorithm === 'ed25519' || keyAlgorithm === 'ed448') ? null : this.hashAlgorithm);
 
+		let signatureAlgorithm: SignatureAlgorithm | undefined;
 		if (keyAlgorithm === 'rsa' || keyAlgorithm === 'ecdsa') {
 			signatureAlgorithm = `${keyAlgorithm}-${this.hashAlgorithm}` as const;
 		}
@@ -105,16 +98,8 @@ export class HttpSignature {
 		}) as string;
 	}
 
-	public static genSignature(signingString: string, privateKey: string, hashAlgorithm: SignatureHashAlgorithm) {
-		const sign = crypto.createSign(hashAlgorithm);
-		sign.update(signingString);
-		sign.end();
-	
-		return sign.sign(privateKey, 'base64');
-	}
-
-	public static genEdSignature(signingString: string, privateKey: string) {
-		const r = crypto.sign(null, Buffer.from(signingString), privateKey);
+	public static genSignature(signingString: string, privateKey: string, hashAlgorithm: SignatureHashAlgorithm | null) {
+		const r = crypto.sign(hashAlgorithm, Buffer.from(signingString), privateKey);
 		return r.toString('base64');
 	}
 
