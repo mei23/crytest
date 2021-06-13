@@ -56,6 +56,11 @@ export class HttpSignature {
 		return sign.sign(privateKey, 'base64');
 	}
 
+	public static genEdSignature(signingString: string, privateKey: string) {
+		const r = crypto.sign(null, Buffer.from(signingString), privateKey);
+		return r.toString('base64');
+	}
+
 	public static genAuthorizationHeader(includeHeaders: string[], keyId: string, signature: string, hashAlgorithm: SignatureAlgorithm = 'rsa-sha256') {
 		return `Signature ${HttpSignature.genSignatureHeader(includeHeaders, keyId, signature, hashAlgorithm)}`;
 	}

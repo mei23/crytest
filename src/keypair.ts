@@ -37,6 +37,36 @@ export async function genEcKeyPair(namedCurve: EcCurves = 'prime256v1') {
 	});
 }
 
+export async function genEd25519KeyPair() {
+	return await generateKeyPair('ed25519', {
+		publicKeyEncoding: {
+			type: 'spki',
+			format: 'pem'
+		},
+		privateKeyEncoding: {
+			type: 'pkcs8',
+			format: 'pem',
+			cipher: undefined,
+			passphrase: undefined
+		}
+	});
+}
+
+export async function genEd448KeyPair() {
+	return await generateKeyPair('ed448', {
+		publicKeyEncoding: {
+			type: 'spki',
+			format: 'pem'
+		},
+		privateKeyEncoding: {
+			type: 'pkcs8',
+			format: 'pem',
+			cipher: undefined,
+			passphrase: undefined
+		}
+	});
+}
+
 /**
  * PKCS1形式かもしれない公開キーをSPKI形式に統一して出力する
  */

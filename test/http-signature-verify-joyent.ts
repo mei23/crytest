@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { HttpSignature } from '../src/http-signature';
-import { genRsaKeyPair, genEcKeyPair } from '../src/keypair';
+import { genRsaKeyPair, genEcKeyPair, genEd25519KeyPair, genEd448KeyPair } from '../src/keypair';
 import * as httpSignature from 'http-signature';
 
 type ParsedSignature = {
@@ -76,4 +76,24 @@ describe('HTTP Signature verify by joyent', () => {
 		const result = httpSignature.verifySignature(parsed, keyPair.publicKey);
 		assert.deepStrictEqual(result, true);
 	});
+
+	/*
+	it('ed25519', async () => {
+		const keyPair = await genEd25519KeyPair();
+		const signingString = 'foo';
+		const signature = HttpSignature.genEdSignature(signingString, keyPair.privateKey);
+		const parsed = buildParsedSignature(signingString, signature, undefined);	// TODO
+		const result = httpSignature.verifySignature(parsed, keyPair.publicKey);
+		assert.deepStrictEqual(result, true);
+	});
+
+	it('ed448', async () => {
+		const keyPair = await genEd448KeyPair();
+		const signingString = 'foo';
+		const signature = HttpSignature.genEdSignature(signingString, keyPair.privateKey);
+		const parsed = buildParsedSignature(signingString, signature, undefined);	// TODO
+		const result = httpSignature.verifySignature(parsed, keyPair.publicKey);
+		assert.deepStrictEqual(result, true);
+	});
+	*/
 });
