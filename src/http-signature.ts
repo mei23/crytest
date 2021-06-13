@@ -19,7 +19,7 @@ export type SignatureAlgorithm = 'rsa-sha1' | 'rsa-sha256' | 'rsa-sha512' | 'ecd
 
 export class HttpSignature {
 	private key: SignatureKey;
-	public keyAlgorithm: SignatureKeyAlgorithm = 'rsa';
+	private keyAlgorithm: SignatureKeyAlgorithm = 'rsa';
 	public hashAlgorithm: SignatureHashAlgorithm = 'sha256';
 
 	constructor(key: SignatureKey) {
