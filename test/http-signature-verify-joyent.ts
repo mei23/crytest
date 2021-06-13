@@ -49,6 +49,7 @@ describe('HTTP Signature verify by joyent', () => {
 		const result = httpSignature.verifySignature(parsed, keyPair.publicKey);
 		assert.deepStrictEqual(result, true);
 	});
+
 	it('rsa-sha512 4096', async () => {
 		const keyPair = await genRsaKeyPair(4096);
 		const signingString = 'foo';
