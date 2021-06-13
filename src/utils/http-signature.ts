@@ -15,7 +15,7 @@ export type SignatureKey = {
 
 export type SignatureKeyAlgorithm = 'rsa' | 'ecdsa';
 export type SignatureHashAlgorithm = 'sha1' | 'sha256' | 'sha512';
-export type SignatureAlgorithm = 'rsa-sha1' | 'rsa-sha256' | 'rsa-sha512' | 'ecdsa-sha1' | 'ecdsa-sha256' | 'ecdsa-sha512';	// TODO: hs2019
+export type SignatureAlgorithm = 'rsa-sha1' | 'rsa-sha256' | 'rsa-sha512' | 'ecdsa-sha1' | 'ecdsa-sha256' | 'ecdsa-sha512';
 
 export class HttpSignature {
 	private key: SignatureKey;
