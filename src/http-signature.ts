@@ -58,69 +58,61 @@ export function verifySignature(parsed: ParsedSignature, publicKeyPem: string) {
 	}
 }
 
-export class HttpSignature {
-	private key: SignatureKey;
-	public hashAlgorithm: SignatureHashAlgorithm = 'sha256';
+export function signToRequest(requestOptions: RequestOptions, includeHeaders: string[], key: SignatureKey, opts: { hashAlgorithm?: SignatureHashAlgorithm } = {}) {
+	const hashAlgorithm = opts?.hashAlgorithm || 'sha256';
+	const keyAlgorithm = detectKeyAlgorithm(key.privateKeyPem);
 
-	constructor(key: SignatureKey) {
-		this.key = key;
+	const signingString =  genSigningString(requestOptions, includeHeaders);
+	const signature = genSignature(signingString, key.privateKeyPem,
+			(keyAlgorithm === 'ed25519' || keyAlgorithm === 'ed448') ? null : hashAlgorithm);
+
+	let signatureAlgorithm: SignatureAlgorithm | undefined;
+	if (keyAlgorithm === 'rsa' || keyAlgorithm === 'ecdsa') {
+		signatureAlgorithm = `${keyAlgorithm}-${hashAlgorithm}` as const;
 	}
 
-	public signToRequest(requestOptions: RequestOptions, includeHeaders: string[]) {
-		const keyAlgorithm = HttpSignature.detectKeyAlgorithm(this.key.privateKeyPem);
+	const signatureHeader = genSignatureHeader(includeHeaders, key.keyId, signature, signatureAlgorithm);
 
-		const signingString =  HttpSignature.genSigningString(requestOptions, includeHeaders);
-		const signature = HttpSignature.genSignature(signingString, this.key.privateKeyPem,
-				(keyAlgorithm === 'ed25519' || keyAlgorithm === 'ed448') ? null : this.hashAlgorithm);
+	Object.assign(requestOptions.headers, {
+		Signature: signatureHeader
+	});
 
-		let signatureAlgorithm: SignatureAlgorithm | undefined;
-		if (keyAlgorithm === 'rsa' || keyAlgorithm === 'ecdsa') {
-			signatureAlgorithm = `${keyAlgorithm}-${this.hashAlgorithm}` as const;
-		}
-
-		const signatureHeader = HttpSignature.genSignatureHeader(includeHeaders, this.key.keyId, signature, signatureAlgorithm);
-
-		Object.assign(requestOptions.headers, {
-			Signature: signatureHeader
-		});
-
-		return {
-			signingString,
-			signature,
-			signatureHeader,
-		}
+	return {
+		signingString,
+		signature,
+		signatureHeader,
 	}
+}
 
-	public static genSigningString(requestOptions: RequestOptions, includeHeaders: string[]) {
-		return createSignatureString({
-			includeHeaders,
-			requestOptions,
-		}) as string;
-	}
+export function genSigningString(requestOptions: RequestOptions, includeHeaders: string[]) {
+	return createSignatureString({
+		includeHeaders,
+		requestOptions,
+	}) as string;
+}
 
-	public static genSignature(signingString: string, privateKey: string, hashAlgorithm: SignatureHashAlgorithm | null) {
-		const r = crypto.sign(hashAlgorithm, Buffer.from(signingString), privateKey);
-		return r.toString('base64');
-	}
+export function genSignature(signingString: string, privateKey: string, hashAlgorithm: SignatureHashAlgorithm | null) {
+	const r = crypto.sign(hashAlgorithm, Buffer.from(signingString), privateKey);
+	return r.toString('base64');
+}
 
-	public static genAuthorizationHeader(includeHeaders: string[], keyId: string, signature: string, hashAlgorithm: SignatureAlgorithm | undefined) {
-		return `Signature ${HttpSignature.genSignatureHeader(includeHeaders, keyId, signature, hashAlgorithm)}`;
-	}
+export function genAuthorizationHeader(includeHeaders: string[], keyId: string, signature: string, hashAlgorithm: SignatureAlgorithm | undefined) {
+	return `Signature ${genSignatureHeader(includeHeaders, keyId, signature, hashAlgorithm)}`;
+}
 
-	public static genSignatureHeader(includeHeaders: string[], keyId: string, signature: string, algorithm: SignatureAlgorithm | undefined) {
-		if (algorithm) {
-			return `keyId="${keyId}",algorithm="${algorithm}",headers="${includeHeaders.join(' ')}",signature="${signature}"`;
-		} else {
-			return `keyId="${keyId}",headers="${includeHeaders.join(' ')}",signature="${signature}"`;
-		}
+export function genSignatureHeader(includeHeaders: string[], keyId: string, signature: string, algorithm: SignatureAlgorithm | undefined) {
+	if (algorithm) {
+		return `keyId="${keyId}",algorithm="${algorithm}",headers="${includeHeaders.join(' ')}",signature="${signature}"`;
+	} else {
+		return `keyId="${keyId}",headers="${includeHeaders.join(' ')}",signature="${signature}"`;
 	}
+}
 
-	public static detectKeyAlgorithm(privateKey: string): SignatureKeyAlgorithm {
-		const keyObject = crypto.createPrivateKey(privateKey);
-		if (keyObject.asymmetricKeyType === 'rsa') return 'rsa';
-		if (keyObject.asymmetricKeyType === 'ec') return 'ecdsa';
-		if (keyObject.asymmetricKeyType === 'ed25519') return 'ed25519';
-		if (keyObject.asymmetricKeyType === 'ed448') return 'ed448';
-		throw `unsupported keyAlgorithm: ${keyObject.asymmetricKeyType}`;
-	}
+export function detectKeyAlgorithm(privateKey: string): SignatureKeyAlgorithm {
+	const keyObject = crypto.createPrivateKey(privateKey);
+	if (keyObject.asymmetricKeyType === 'rsa') return 'rsa';
+	if (keyObject.asymmetricKeyType === 'ec') return 'ecdsa';
+	if (keyObject.asymmetricKeyType === 'ed25519') return 'ed25519';
+	if (keyObject.asymmetricKeyType === 'ed448') return 'ed448';
+	throw `unsupported keyAlgorithm: ${keyObject.asymmetricKeyType}`;
 }

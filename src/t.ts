@@ -1,5 +1,5 @@
 import { inspect } from 'util';
-import { RequestOptions, HttpSignature } from './http-signature';
+import { genSignature, genSignatureHeader, genSigningString, RequestOptions, signToRequest } from './http-signature';
 import { genEd448KeyPair, genRsaKeyPair } from './keypair';
 
 async function main() {
@@ -16,11 +16,11 @@ async function main() {
 	};
 
 	const includeHeaders = ['(request-target)', 'host', 'date', 'digest'];
-	const signingString = HttpSignature.genSigningString(requestOptions, includeHeaders);
+	const signingString = genSigningString(requestOptions, includeHeaders);
 
-	const signature = HttpSignature.genSignature(signingString, keypair.privateKey, 'sha256');
+	const signature = genSignature(signingString, keypair.privateKey, 'sha256');
 	//const authorizationHeader = genAuthorizationHeader(includeHeaders, 'x1', signature);
-	const signatureHeader = HttpSignature.genSignatureHeader(includeHeaders, 'x1', signature, 'rsa-sha256');
+	const signatureHeader = genSignatureHeader(includeHeaders, 'x1', signature, 'rsa-sha256');
 
 	console.log(inspect({
 		privateKey: keypair.privateKey,
@@ -32,8 +32,7 @@ async function main() {
 
 	const kp = await genEd448KeyPair();
 
-	const sn = new HttpSignature({ privateKeyPem: kp.privateKey, keyId: 'key1' });
-	const re = sn.signToRequest(requestOptions, includeHeaders);
+	const re = signToRequest(requestOptions, includeHeaders, { privateKeyPem: kp.privateKey, keyId: 'key1' });
 	console.log(inspect(requestOptions));
 	console.log(inspect(re));
 }
