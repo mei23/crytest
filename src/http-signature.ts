@@ -10,7 +10,6 @@ export type RequestOptions = {
 export type SignatureKey = {
 	privateKeyPem: string;
 	keyId: string;
-	keyType?: SignatureKeyAlgorithm;
 };
 
 export type SignatureKeyAlgorithm = 'rsa' | 'ecdsa';
@@ -19,18 +18,18 @@ export type SignatureAlgorithm = 'rsa-sha1' | 'rsa-sha256' | 'rsa-sha512' | 'ecd
 
 export class HttpSignature {
 	private key: SignatureKey;
-	private keyAlgorithm: SignatureKeyAlgorithm = 'rsa';
 	public hashAlgorithm: SignatureHashAlgorithm = 'sha256';
 
 	constructor(key: SignatureKey) {
 		this.key = key;
-		if (key.keyType === 'ecdsa') this.keyAlgorithm = 'ecdsa'
 	}
 
 	public signToRequest(requestOptions: RequestOptions, includeHeaders: string[]) {
 		const signingString = HttpSignature.genSigningString(requestOptions, includeHeaders);
 		const signature = HttpSignature.genSignature(signingString, this.key.privateKeyPem, this.hashAlgorithm);
-		const signatureHeader = HttpSignature.genSignatureHeader(includeHeaders, this.key.keyId, signature, `${this.keyAlgorithm}-${this.hashAlgorithm}` as const);
+		const keyAlgorithm = HttpSignature.getKeyAlgorithm(this.key.privateKeyPem);
+		const signatureHeader = HttpSignature.genSignatureHeader(includeHeaders, this.key.keyId, signature, `${keyAlgorithm}-${this.hashAlgorithm}` as const);
+
 		Object.assign(requestOptions.headers, {
 			Signature: signatureHeader
 		});
@@ -63,5 +62,12 @@ export class HttpSignature {
 
 	public static genSignatureHeader(includeHeaders: string[], keyId: string, signature: string, algorithm: SignatureAlgorithm = 'rsa-sha256') {
 		return `keyId="${keyId}",algorithm="${algorithm}",headers="${includeHeaders.join(' ')}",signature="${signature}"`;
+	}
+
+	public static getKeyAlgorithm(privateKey: string): SignatureKeyAlgorithm {
+		const keyObject = crypto.createPrivateKey(privateKey);
+		if (keyObject.asymmetricKeyType === 'rsa') return 'rsa';
+		if (keyObject.asymmetricKeyType === 'ec') return 'ecdsa';
+		throw `unsupported keyAlgorithm: ${keyObject.asymmetricKeyType}`;
 	}
 }
