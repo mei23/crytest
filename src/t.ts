@@ -18,9 +18,9 @@ async function main() {
 	const includeHeaders = ['(request-target)', 'host', 'date', 'digest'];
 	const signingString = HttpSignature.genSigningString(requestOptions, includeHeaders);
 
-	const signature = HttpSignature.genSignature(signingString, keypair.privateKey);
+	const signature = HttpSignature.genSignature(signingString, keypair.privateKey, 'sha256');
 	//const authorizationHeader = genAuthorizationHeader(includeHeaders, 'x1', signature);
-	const signatureHeader = HttpSignature.genSignatureHeader(includeHeaders, 'x1', signature);
+	const signatureHeader = HttpSignature.genSignatureHeader(includeHeaders, 'x1', signature, 'rsa-sha256');
 
 	console.log(inspect({
 		privateKey: keypair.privateKey,

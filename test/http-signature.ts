@@ -61,7 +61,7 @@ describe('HTTP Signature', () => {
 	});
 
 	it('genAuthorizationHeader', () => {
-		const header = HttpSignature.genAuthorizationHeader(['foo', 'bar'], 'KeyIdaaa', 'Signature');
+		const header = HttpSignature.genAuthorizationHeader(['foo', 'bar'], 'KeyIdaaa', 'Signature', 'rsa-sha256');
 
 		assert.strictEqual(
 			header,
@@ -70,11 +70,20 @@ describe('HTTP Signature', () => {
 	});
 
 	it('genSignatureHeader', () => {
-		const header = HttpSignature.genSignatureHeader(['foo', 'bar'], 'KeyIdaaa', 'Signature');
+		const header = HttpSignature.genSignatureHeader(['foo', 'bar'], 'KeyIdaaa', 'Signature', 'rsa-sha256');
 
 		assert.strictEqual(
 			header,
 			'keyId="KeyIdaaa",algorithm="rsa-sha256",headers="foo bar",signature="Signature"'
+		);
+	});
+
+	it('genSignatureHeader', () => {
+		const header = HttpSignature.genSignatureHeader(['foo', 'bar'], 'KeyIdaaa', 'Signature', undefined);
+
+		assert.strictEqual(
+			header,
+			'keyId="KeyIdaaa",headers="foo bar",signature="Signature"'
 		);
 	});
 });
