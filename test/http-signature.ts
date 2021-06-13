@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { HttpSignature } from '../src/utils/http-signature';
+import { HttpSignature } from '../src/http-signature';
 
 describe('HTTP Signature', () => {
 	it('genSigningString', () => {

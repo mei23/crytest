@@ -1,6 +1,6 @@
 import * as assert from 'assert';
-import { HttpSignature } from '../src/utils/http-signature';
-import { genRsaKeyPair, genEcKeyPair } from '../src/utils/keypair';
+import { HttpSignature } from '../src/http-signature';
+import { genRsaKeyPair, genEcKeyPair } from '../src/keypair';
 import * as httpSignature from 'http-signature';
 
 type ParsedSignature = {

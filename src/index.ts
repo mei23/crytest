@@ -1,2 +1,2 @@
-export * from './utils/http-signature';
-export * from './utils/signed-request';
+export * from './http-signature';
+export * from './signed-request';

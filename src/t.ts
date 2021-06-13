@@ -1,6 +1,6 @@
 import { inspect } from 'util';
-import { RequestOptions, HttpSignature } from './utils/http-signature';
-import { genRsaKeyPair } from './utils/keypair';
+import { RequestOptions, HttpSignature } from './http-signature';
+import { genRsaKeyPair } from './keypair';
 
 async function main() {
 	const keypair = await genRsaKeyPair();
