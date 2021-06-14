@@ -78,7 +78,7 @@ describe('HTTP Signature', () => {
 		);
 	});
 
-	it('genSignatureHeader', () => {
+	it('genSignatureHeader algorithm omited', () => {
 		const header = genSignatureHeader(['foo', 'bar'], 'KeyIdaaa', 'Signature', undefined);
 
 		assert.strictEqual(

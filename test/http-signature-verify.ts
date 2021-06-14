@@ -31,8 +31,8 @@ const buildParsedSignature = (signingString: string, signature: string, algorith
 };
 
 describe('HTTP Signature verify', () => {
-	it('rsa-sha256 2048', async () => {
-		const keyPair = await genRsaKeyPair(2048);
+	it('rsa-sha256', async () => {
+		const keyPair = await genRsaKeyPair();
 		const signingString = 'foo';
 		const signature = genSignature(signingString, keyPair.privateKey, 'sha256');
 		const parsed = buildParsedSignature(signingString, signature, 'rsa-sha256');
@@ -40,8 +40,8 @@ describe('HTTP Signature verify', () => {
 		assert.deepStrictEqual(result, true);
 	});
 
-	it('rsa-sha256 2048 2', async () => {
-		const keyPair = await genRsaKeyPair(2048);
+	it('rsa-sha256 algorithm omited', async () => {
+		const keyPair = await genRsaKeyPair();
 		const signingString = 'foo';
 		const signature = genSignature(signingString, keyPair.privateKey, 'sha256');
 		const parsed = buildParsedSignature(signingString, signature, undefined);
@@ -49,8 +49,17 @@ describe('HTTP Signature verify', () => {
 		assert.deepStrictEqual(result, true);
 	});
 
-	it('ecdsa-sha512', async () => {
-		const keyPair = await genEcKeyPair();
+	it('ecdsa-sha256 prime256v1', async () => {
+		const keyPair = await genEcKeyPair('prime256v1');
+		const signingString = 'foo';
+		const signature = genSignature(signingString, keyPair.privateKey, 'sha512');
+		const parsed = buildParsedSignature(signingString, signature, 'ecdsa-sha512');
+		const result = verifySignature(parsed, keyPair.publicKey);
+		assert.deepStrictEqual(result, true);
+	});
+
+	it('ecdsa-sha512 secp521r1', async () => {
+		const keyPair = await genEcKeyPair('secp521r1');
 		const signingString = 'foo';
 		const signature = genSignature(signingString, keyPair.privateKey, 'sha512');
 		const parsed = buildParsedSignature(signingString, signature, 'ecdsa-sha512');
