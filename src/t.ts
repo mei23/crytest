@@ -32,7 +32,7 @@ async function main() {
 
 	const kp = await genEd448KeyPair();
 
-	const re = signToRequest(requestOptions, includeHeaders, { privateKeyPem: kp.privateKey, keyId: 'key1' });
+	const re = signToRequest(requestOptions, { privateKeyPem: kp.privateKey, keyId: 'key1' }, includeHeaders);
 	console.log(inspect(requestOptions));
 	console.log(inspect(re));
 }

@@ -26,9 +26,14 @@ export function createSignedPost(key: PrivateKey, url: string, body: string, hea
 		}, headers),
 	};
 
-	signToRequest(request, key, ['(request-target)', 'date', 'host', 'digest']);
+	const result = signToRequest(request, key, ['(request-target)', 'date', 'host', 'digest']);
 
-	return request;
+	return {
+		request,
+		signingString: result.signingString,
+		signature: result.signature,
+		signatureHeader: result.signatureHeader,
+	};
 }
 
 export function createSignedGet(key: PrivateKey, url: string, headers: Record<string, string>) {
@@ -44,22 +49,34 @@ export function createSignedGet(key: PrivateKey, url: string, headers: Record<st
 		}, headers),
 	};
 
-	signToRequest(request, key, ['(request-target)', 'date', 'host', 'accept']);
+	const result = signToRequest(request, key, ['(request-target)', 'date', 'host', 'accept']);
 
-	return request;
+	return {
+		request,
+		signingString: result.signingString,
+		signature: result.signature,
+		signatureHeader: result.signatureHeader,
+	};
 }
 
 function signToRequest(request: Request, key: PrivateKey, includeHeaders: string[]) {
-	const stringToSign = genStringToSign(request, includeHeaders);
-	const signature = crypto.sign('sha256', Buffer.from(stringToSign), key.privateKeyPem).toString('base64');
+	const signingString = genSigningString(request, includeHeaders);
+	const signature = crypto.sign('sha256', Buffer.from(signingString), key.privateKeyPem).toString('base64');
 	const signatureHeader = `keyId="${key.keyId}",algorithm="rsa-sha256",headers="${includeHeaders.join(' ')}",signature="${signature}"`;
 
 	Object.assign(request.headers, {
 		Signature: signatureHeader
 	});
+
+	return {
+		request,
+		signingString,
+		signature,
+		signatureHeader,
+	};
 }
 
-function genStringToSign(request: Request, includeHeaders: string[]) {
+function genSigningString(request: Request, includeHeaders: string[]) {
 	const lcObjectKey = (src: Record<string, string>) => {
 		const dst: Record<string, string> = {};
 		for (const key of Object.keys(src).filter(x => x != '__proto__')) dst[key.toLowerCase()] = src[key];

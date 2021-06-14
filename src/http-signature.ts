@@ -58,7 +58,7 @@ export function verifySignature(parsed: ParsedSignature, publicKeyPem: string) {
 	}
 }
 
-export function signToRequest(requestOptions: RequestOptions, includeHeaders: string[], key: SignatureKey, opts: { hashAlgorithm?: SignatureHashAlgorithm } = {}) {
+export function signToRequest(requestOptions: RequestOptions, key: SignatureKey, includeHeaders: string[], opts: { hashAlgorithm?: SignatureHashAlgorithm } = {}) {
 	const hashAlgorithm = opts?.hashAlgorithm || 'sha256';
 	const keyAlgorithm = detectKeyAlgorithm(key.privateKeyPem);
 

@@ -15,7 +15,7 @@ export function genSignedPost(key: SignatureKey, url: string, body: string, head
 		}, headers),
 	};
 
-	const result = signToRequest(request, ['(request-target)', 'date', 'host', 'digest'], key);
+	const result = signToRequest(request, key, ['(request-target)', 'date', 'host', 'digest']);
 
 	return {
 		request,
@@ -38,7 +38,7 @@ export function genSignedGet(key: SignatureKey, url: string, headers: Record<str
 		}, headers),
 	};
 
-	const result = signToRequest(request, ['(request-target)', 'date', 'host', 'accept'], key);
+	const result = signToRequest(request, key, ['(request-target)', 'date', 'host', 'accept']);
 
 	return {
 		request,
