@@ -15,7 +15,7 @@ describe('ap-request', () => {
 			'User-Agent': 'UA'
 		};
 
-		const rsult = createSignedPost(key, url, body, headers);
+		const rsult = createSignedPost({ key, url, body, additionalHeaders: headers });
 
 		const parsed = buildParsedSignature(rsult.signingString, rsult.signature, 'rsa-sha256');
 
@@ -32,7 +32,7 @@ describe('ap-request', () => {
 			'User-Agent': 'UA'
 		};
 
-		const rsult = createSignedGet(key, url, headers);
+		const rsult = createSignedGet({ key, url, additionalHeaders: headers });
 
 		const parsed = buildParsedSignature(rsult.signingString, rsult.signature, 'rsa-sha256');
 
