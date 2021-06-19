@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node ./built",
     "build": "tsc",
-    "test": "TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true gulp test"
+    "test": "cross-env TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true gulp test"
   },
   "dependencies": {
     "@types/gulp-mocha": "0.0.33",
@@ -20,6 +20,7 @@
     "typescript": "4.3.2"
   },
   "devDependencies": {
+    "cross-env": "7.0.3",
     "http-signature": "1.3.5"
   }
 }
