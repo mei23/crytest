@@ -94,7 +94,7 @@ function genSigningString(request: Request, includeHeaders: string[]) {
 
 function lcObjectKey(src: Record<string, string>) {
 	const dst: Record<string, string> = {};
-	for (const key of Object.keys(src).filter(x => x != '__proto__')) dst[key.toLowerCase()] = src[key];
+	for (const key of Object.keys(src).filter(x => x != '__proto__' && typeof src[x] === 'string')) dst[key.toLowerCase()] = src[key];
 	return dst;
 }
 
