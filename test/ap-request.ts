@@ -5,7 +5,7 @@ import { buildParsedSignature } from './utils';
 import * as httpSignature from 'http-signature';
 
 describe('ap-request', () => {
-	it('createSignedPost w verify', async () => {
+	it('createSignedPost with verify', async () => {
 		const keypair = await genRsaKeyPair();
 		const key = { keyId: 'x', 'privateKeyPem': keypair.privateKey };
 		const url = 'https://example.com/inbox';
@@ -23,11 +23,10 @@ describe('ap-request', () => {
 		assert.deepStrictEqual(result, true);
 	});
 
-	it('createSignedPost w verify', async () => {
+	it('createSignedGet with verify', async () => {
 		const keypair = await genRsaKeyPair();
 		const key = { keyId: 'x', 'privateKeyPem': keypair.privateKey };
 		const url = 'https://example.com/inbox';
-		const activity = { a: 1 };
 		const headers = {
 			'User-Agent': 'UA'
 		};
