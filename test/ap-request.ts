@@ -15,9 +15,9 @@ describe('ap-request', () => {
 			'User-Agent': 'UA'
 		};
 
-		const rsult = createSignedPost({ key, url, body, additionalHeaders: headers });
+		const req = createSignedPost({ key, url, body, additionalHeaders: headers });
 
-		const parsed = buildParsedSignature(rsult.signingString, rsult.signature, 'rsa-sha256');
+		const parsed = buildParsedSignature(req.signingString, req.signature, 'rsa-sha256');
 
 		const result = httpSignature.verifySignature(parsed, keypair.publicKey);
 		assert.deepStrictEqual(result, true);
@@ -31,9 +31,9 @@ describe('ap-request', () => {
 			'User-Agent': 'UA'
 		};
 
-		const rsult = createSignedGet({ key, url, additionalHeaders: headers });
+		const req = createSignedGet({ key, url, additionalHeaders: headers });
 
-		const parsed = buildParsedSignature(rsult.signingString, rsult.signature, 'rsa-sha256');
+		const parsed = buildParsedSignature(req.signingString, req.signature, 'rsa-sha256');
 
 		const result = httpSignature.verifySignature(parsed, keypair.publicKey);
 		assert.deepStrictEqual(result, true);
