@@ -11,7 +11,7 @@
   "dependencies": {
     "@types/gulp-mocha": "0.0.33",
     "@types/mocha": "9.0.0",
-    "@types/node": "16.6.2",
+    "@types/node": "18.11.2",
     "gulp": "4.0.2",
     "gulp-mocha": "8.0.0",
     "http-signature-header": "2.0.2",
