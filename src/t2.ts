@@ -2,6 +2,7 @@ import { inspect } from 'util';
 import { genSignature, genSignatureHeader, genSigningString, RequestOptions, SignatureKey, signToRequest, verifySignature } from './http-signature';
 import {genDigestHeader, genSignedPost } from './signed-request';
 import { genEcKeyPair, genEd25519KeyPair, genEd448KeyPair, genRsaKeyPair } from './keypair';
+import * as httpSignature from 'http-signature';
 
 const data = {
 	"id": "https://origin.example.com/notes/71892bbe2438fe6d0d62d7b8",
@@ -25,17 +26,20 @@ const data = {
 };
 
 async function main() {
+	const body = JSON.stringify(data);
+
 	// generate keys
 	const rsa2048 = await genRsaKeyPair(2048);
 	const rsa4096 = await genRsaKeyPair(4096);
+	const rsa8192 = await genRsaKeyPair(8192);
 	const p256 = await genEcKeyPair('prime256v1');	// NIST P-256
 	const p384 = await genEcKeyPair('secp384r1');	// NIST P-384
 	const p512 = await genEcKeyPair('secp521r1');	// NIST P-512
+	const k256 = await genEcKeyPair('secp256k1');
 	const ed25519 = await genEd25519KeyPair();
 	const ed448 = await genEd448KeyPair();
 
-	const body = JSON.stringify(data);
-
+	// generate parsedSignatures
 	const rsa2048Ps = (() => {
 		const sp = genSignedPost({ privateKeyPem: rsa2048.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {})
 		return buildParsedSignature(sp.signingString, sp.signature, 'rsa-sha256');
@@ -43,6 +47,11 @@ async function main() {
 
 	const rsa4096Ps = (() => {
 		const sp = genSignedPost({ privateKeyPem: rsa4096.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {})
+		return buildParsedSignature(sp.signingString, sp.signature, 'rsa-sha256');
+	})();
+
+	const rsa8192Ps = (() => {
+		const sp = genSignedPost({ privateKeyPem: rsa8192.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {})
 		return buildParsedSignature(sp.signingString, sp.signature, 'rsa-sha256');
 	})();
 
@@ -61,61 +70,101 @@ async function main() {
 		return buildParsedSignature(sp.signingString, sp.signature, 'ecdsa-sha256');
 	})();
 
+	const k256Ps = (() => {
+		const sp = genSignedPost({ privateKeyPem: k256.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {})
+		return buildParsedSignature(sp.signingString, sp.signature, 'ecdsa-sha256');
+	})();
+
 	const ed25519Ps = (() => {
 		const sp = genSignedPost({ privateKeyPem: ed25519.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {})
-		return buildParsedSignature(sp.signingString, sp.signature, 'x');
+		return buildParsedSignature(sp.signingString, sp.signature, 'ed25519');
 	})();
 
 	const ed448Ps = (() => {
 		const sp = genSignedPost({ privateKeyPem: ed448.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {})
-		return buildParsedSignature(sp.signingString, sp.signature, 'x');
+		return buildParsedSignature(sp.signingString, sp.signature, '');
 	})();
 
 
 	console.log(verifySignature(ed25519Ps, ed25519.publicKey));
 
 	const marks = {
-		'veri rsa2048': () => {
+		'sha256': () => {
+			genDigestHeader(body)
+		},
+		'veri-rsa2048-joyent': () => {
+			httpSignature.verifySignature(rsa2048Ps, rsa2048.publicKey);
+		},
+		'veri-rsa4096-joyent': () => {
+			httpSignature.verifySignature(rsa4096Ps, rsa4096.publicKey);
+		},
+		'veri-rsa8192-joyent': () => {
+			httpSignature.verifySignature(rsa8192Ps, rsa8192.publicKey);
+		},
+		'veri-p256-joyent': () => {
+			httpSignature.verifySignature(p256Ps, p256.publicKey);
+		},
+		'veri-p384-joyent': () => {
+			httpSignature.verifySignature(p384Ps, p384.publicKey);
+		},
+		'veri-p512-joyent': () => {
+			httpSignature.verifySignature(p512Ps, p512.publicKey);
+		},
+
+	
+		'veri-rsa2048': () => {
 			verifySignature(rsa2048Ps, rsa2048.publicKey);
 		},
-		'veri rsa4096': () => {
+		'veri-rsa4096': () => {
 			verifySignature(rsa4096Ps, rsa4096.publicKey);
 		},
-		'veri p256': () => {
+		'veri-rsa8192': () => {
+			verifySignature(rsa8192Ps, rsa8192.publicKey);
+		},
+		'veri-p256': () => {
 			verifySignature(p256Ps, p256.publicKey);
 		},
-		'veri p384': () => {
+		'veri-p384': () => {
 			verifySignature(p384Ps, p384.publicKey);
 		},
-		'veri p512': () => {
+		'veri-p512': () => {
 			verifySignature(p512Ps, p512.publicKey);
 		},
-		'veri ed25519': () => {
+		'veri-k256': () => {
+			verifySignature(k256Ps, k256.publicKey);
+		},
+		'veri-ed25519': () => {
 			verifySignature(ed25519Ps, ed25519.publicKey);
 		},
-		'veri ed448': () => {
+		'veri-ed448': () => {
 			verifySignature(ed448Ps, ed448.publicKey);
 		},
 
-		'sign rsa2048': () => {
+		'sign-rsa2048': () => {
 			genSignedPost({ privateKeyPem: rsa2048.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
 		},
-		'sign rsa4096': () => {
+		'sign-rsa4096': () => {
 			genSignedPost({ privateKeyPem: rsa4096.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
 		},
-		'sign p256': () => {
+		'sign-rsa8192': () => {
+			genSignedPost({ privateKeyPem: rsa8192.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
+		},
+		'sign-k256': () => {
+			genSignedPost({ privateKeyPem: k256.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
+		},
+		'sign-p256': () => {
 			genSignedPost({ privateKeyPem: p256.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
 		},
-		'sign p384': () => {
+		'sign-p384': () => {
 			genSignedPost({ privateKeyPem: p384.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
 		},
-		'sign p512': () => {
+		'sign-p512': () => {
 			genSignedPost({ privateKeyPem: p512.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
 		},
-		'sign ed25519': () => {
+		'sign-ed25519': () => {
 			genSignedPost({ privateKeyPem: ed25519.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
 		},
-		'sign ed448': () => {
+		'sign-ed448': () => {
 			genSignedPost({ privateKeyPem: ed448.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
 		},
 
