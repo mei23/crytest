@@ -22,6 +22,6 @@
   "devDependencies": {
     "@swc/core": "1.3.68",
     "cross-env": "7.0.3",
-    "http-signature": "1.3.5"
+    "http-signature": "git+https://github.com/mei23/node-http-signature#eaba61699775ad0d30be612d0661e0b240c46992"
   }
 }

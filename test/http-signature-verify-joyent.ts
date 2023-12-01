@@ -40,4 +40,31 @@ describe('HTTP Signature verify by joyent', () => {
 		const result = httpSignature.verifySignature(parsed, keyPair.publicKey);
 		assert.deepStrictEqual(result, true);
 	});
+
+	it('ed25519-sha512', async () => {
+		const keyPair = await genEd25519KeyPair();
+		const signingString = 'foo';
+		const signature = genSignature(signingString, keyPair.privateKey, null);
+		const parsed = buildParsedSignature(signingString, signature, 'ed25519-sha512');
+		const result = httpSignature.verifySignature(parsed, keyPair.publicKey);
+		assert.deepStrictEqual(result, true);
+	});
+
+	it('hs2019 (rsa-sha256)', async () => {
+		const keyPair = await genRsaKeyPair();
+		const signingString = 'foo';
+		const signature = genSignature(signingString, keyPair.privateKey, 'sha256');
+		const parsed = buildParsedSignature(signingString, signature, 'hs2019');
+		const result = httpSignature.verifySignature(parsed, keyPair.publicKey);
+		assert.deepStrictEqual(result, true);
+	});
+
+	it('hs2019 (ed25519-sha512)', async () => {
+		const keyPair = await genEd25519KeyPair();
+		const signingString = 'foo';
+		const signature = genSignature(signingString, keyPair.privateKey, null);
+		const parsed = buildParsedSignature(signingString, signature, 'hs2019');
+		const result = httpSignature.verifySignature(parsed, keyPair.publicKey);
+		assert.deepStrictEqual(result, true);
+	});
 });
