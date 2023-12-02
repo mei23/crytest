@@ -59,6 +59,15 @@ describe('HTTP Signature verify by joyent', () => {
 		assert.deepStrictEqual(result, true);
 	});
 
+	it('hs2019 (ecdsa-sha256 prime256v1)', async () => {
+		const keyPair = await genEcKeyPair('prime256v1');
+		const signingString = 'foo';
+		const signature = genSignature(signingString, keyPair.privateKey, 'sha256');
+		const parsed = buildParsedSignature(signingString, signature, 'hs2019');
+		const result = httpSignature.verifySignature(parsed, keyPair.publicKey);
+		assert.deepStrictEqual(result, true);
+	});
+
 	it('hs2019 (ed25519-sha512)', async () => {
 		const keyPair = await genEd25519KeyPair();
 		const signingString = 'foo';
