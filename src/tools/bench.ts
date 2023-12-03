@@ -1,6 +1,6 @@
-import { verifySignature } from './http-signature';
-import { genDigestHeader, createSignedPost } from './signed-request';
-import { genEcKeyPair, genEd25519KeyPair, genEd448KeyPair, genRsaKeyPair } from './keypair';
+import { verifySignature } from '../http-signature';
+import { genDigestHeader, createSignedPost } from '../signed-request';
+import { genEcKeyPair, genEd25519KeyPair, genEd448KeyPair, genRsaKeyPair } from '../keypair';
 import * as httpSignature from 'http-signature';
 
 const data = {
