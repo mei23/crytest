@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { genRsaKeyPair } from '../src/keypair';
-import { createSignedPost, createSignedGet } from '../src/ap-request';
+import { createSignedPost, createSignedGet } from '../src/portable/ap-request';
 import { buildParsedSignature } from './utils';
 import * as httpSignature from 'http-signature';
 
