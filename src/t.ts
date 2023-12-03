@@ -1,11 +1,11 @@
 import { inspect } from 'util';
-import { genSignature, genSignatureHeader, genSigningString, RequestOptions, signToRequest } from './http-signature';
+import { genSignature, genSignatureHeader, genSigningString, Request, signToRequest } from './http-signature';
 import { genEd448KeyPair, genRsaKeyPair } from './keypair';
 
 async function main() {
 	const keypair = await genRsaKeyPair();
 
-	const requestOptions: RequestOptions = {
+	const request: Request = {
 		url: 'https://host2.test/inbox',
 		method: 'POST',
 		headers: {
@@ -16,7 +16,7 @@ async function main() {
 	};
 
 	const includeHeaders = ['(request-target)', 'host', 'date', 'digest'];
-	const signingString = genSigningString(requestOptions, includeHeaders);
+	const signingString = genSigningString(request, includeHeaders);
 
 	const signature = genSignature(signingString, keypair.privateKey, 'sha256');
 	//const authorizationHeader = genAuthorizationHeader(includeHeaders, 'x1', signature);
@@ -32,8 +32,8 @@ async function main() {
 
 	const kp = await genEd448KeyPair();
 
-	const re = signToRequest(requestOptions, { privateKeyPem: kp.privateKey, keyId: 'key1' }, includeHeaders);
-	console.log(inspect(requestOptions));
+	const re = signToRequest(request, { privateKeyPem: kp.privateKey, keyId: 'key1' }, includeHeaders);
+	console.log(inspect(request));
 	console.log(inspect(re));
 }
 

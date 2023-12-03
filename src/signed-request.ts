@@ -1,10 +1,10 @@
 import * as crypto from 'crypto';
-import { RequestOptions, SignatureKey, signToRequest } from './http-signature';
+import { Request, PrivateKey, signToRequest } from './http-signature';
 
-export function genSignedPost(key: SignatureKey, url: string, body: string, headers: Record<string, string>) {
+export function genSignedPost(key: PrivateKey, url: string, body: string, headers: Record<string, string>) {
 	const u = new URL(url);
 
-	const request: RequestOptions = {
+	const request: Request = {
 		url: u.href,
 		method: 'POST',
 		headers:  Object.assign({
@@ -25,10 +25,10 @@ export function genSignedPost(key: SignatureKey, url: string, body: string, head
 	};
 }
 
-export function genSignedGet(key: SignatureKey, url: string, headers: Record<string, string>) {
+export function genSignedGet(key: PrivateKey, url: string, headers: Record<string, string>) {
 	const u = new URL(url);
 
-	const request: RequestOptions = {
+	const request: Request = {
 		url: u.href,
 		method: 'GET',
 		headers:  Object.assign({

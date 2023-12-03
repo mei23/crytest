@@ -1,13 +1,12 @@
 import * as crypto from 'crypto';
-const { createSignatureString } = require('http-signature-header');
 
-export type RequestOptions = {
+export type Request = {
 	url: string;
 	method: string;
 	headers: Record<string, string>;
 };
 
-export type SignatureKey = {
+export type PrivateKey = {
 	privateKeyPem: string;
 	keyId: string;
 };
@@ -58,11 +57,11 @@ export function verifySignature(parsed: ParsedSignature, publicKeyPem: string) {
 	}
 }
 
-export function signToRequest(requestOptions: RequestOptions, key: SignatureKey, includeHeaders: string[], opts: { hashAlgorithm?: SignatureHashAlgorithm } = {}) {
+export function signToRequest(request: Request, key: PrivateKey, includeHeaders: string[], opts: { hashAlgorithm?: SignatureHashAlgorithm } = {}) {
 	const hashAlgorithm = opts?.hashAlgorithm || 'sha256';
 	const keyAlgorithm = detectKeyAlgorithm(key.privateKeyPem);
 
-	const signingString =  genSigningString(requestOptions, includeHeaders);
+	const signingString = genSigningString(request, includeHeaders);
 	const signature = genSignature(signingString, key.privateKeyPem,
 			(keyAlgorithm === 'ed25519' || keyAlgorithm === 'ed448') ? null : hashAlgorithm);
 
@@ -73,7 +72,7 @@ export function signToRequest(requestOptions: RequestOptions, key: SignatureKey,
 
 	const signatureHeader = genSignatureHeader(includeHeaders, key.keyId, signature, signatureAlgorithm);
 
-	Object.assign(requestOptions.headers, {
+	Object.assign(request.headers, {
 		Signature: signatureHeader
 	});
 
@@ -84,11 +83,26 @@ export function signToRequest(requestOptions: RequestOptions, key: SignatureKey,
 	}
 }
 
-export function genSigningString(requestOptions: RequestOptions, includeHeaders: string[]) {
-	return createSignatureString({
-		includeHeaders,
-		requestOptions,
-	}) as string;
+export function genSigningString(request: Request, includeHeaders: string[]) {
+	request.headers = lcObjectKey(request.headers);
+
+	const results: string[] = [];
+
+	for (const key of includeHeaders.map(x => x.toLowerCase())) {
+		if (key === '(request-target)') {
+			results.push(`(request-target): ${request.method.toLowerCase()} ${new URL(request.url).pathname}`);
+		} else {
+			results.push(`${key}: ${request.headers[key]}`);
+		}
+	}
+
+	return results.join('\n');
+}
+
+function lcObjectKey(src: Record<string, string>) {
+	const dst: Record<string, string> = {};
+	for (const key of Object.keys(src).filter(x => x != '__proto__' && typeof src[x] === 'string')) dst[key.toLowerCase()] = src[key];
+	return dst;
 }
 
 export function genSignature(signingString: string, privateKey: string, hashAlgorithm: SignatureHashAlgorithm | null) {
