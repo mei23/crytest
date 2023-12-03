@@ -83,7 +83,7 @@ describe('HTTP Signature', () => {
 
 		assert.strictEqual(
 			header,
-			'keyId="KeyIdaaa",headers="foo bar",signature="Signature"'
+			'keyId="KeyIdaaa",algorithm="hs2019",headers="foo bar",signature="Signature"'
 		);
 	});
 });

@@ -118,7 +118,7 @@ export function genSignatureHeader(includeHeaders: string[], keyId: string, sign
 	if (algorithm) {
 		return `keyId="${keyId}",algorithm="${algorithm}",headers="${includeHeaders.join(' ')}",signature="${signature}"`;
 	} else {
-		return `keyId="${keyId}",headers="${includeHeaders.join(' ')}",signature="${signature}"`;
+		return `keyId="${keyId}",algorithm="hs2019",headers="${includeHeaders.join(' ')}",signature="${signature}"`;
 	}
 }
 
