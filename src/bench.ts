@@ -1,5 +1,5 @@
 import { verifySignature } from './http-signature';
-import {genDigestHeader, genSignedPost } from './signed-request';
+import { genDigestHeader, createSignedPost } from './signed-request';
 import { genEcKeyPair, genEd25519KeyPair, genEd448KeyPair, genRsaKeyPair } from './keypair';
 import * as httpSignature from 'http-signature';
 
@@ -65,52 +65,52 @@ async function main() {
 
 	// generate parsedSignatures
 	const rsa2048Ps = (() => {
-		const sp = genSignedPost({ privateKeyPem: rsa2048.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {})
+		const sp = createSignedPost({ key: { privateKeyPem: rsa2048.privateKey, keyId: 'key1' }, url: 'https://target.example.com/inbox', body, additionalHeaders: {} })
 		return buildParsedSignature(sp.signingString, sp.signature, 'rsa-sha256');
 	})();
 
 	const rsa3072Ps = (() => {
-		const sp = genSignedPost({ privateKeyPem: rsa3072.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {})
+		const sp = createSignedPost({ key: { privateKeyPem: rsa3072.privateKey, keyId: 'key1' }, url: 'https://target.example.com/inbox', body, additionalHeaders: {} });
 		return buildParsedSignature(sp.signingString, sp.signature, 'rsa-sha256');
 	})();
 
 	const rsa4096Ps = (() => {
-		const sp = genSignedPost({ privateKeyPem: rsa4096.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {})
+		const sp = createSignedPost({ key: { privateKeyPem: rsa4096.privateKey, keyId: 'key1' }, url: 'https://target.example.com/inbox', body, additionalHeaders: {} });
 		return buildParsedSignature(sp.signingString, sp.signature, 'rsa-sha256');
 	})();
 
 	const rsa8192Ps = (() => {
-		const sp = genSignedPost({ privateKeyPem: rsa8192.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {})
+		const sp = createSignedPost({ key: { privateKeyPem: rsa8192.privateKey, keyId: 'key1' }, url: 'https://target.example.com/inbox', body, additionalHeaders: {} });
 		return buildParsedSignature(sp.signingString, sp.signature, 'rsa-sha256');
 	})();
 
 	const p256Ps = (() => {
-		const sp = genSignedPost({ privateKeyPem: p256.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {})
+		const sp = createSignedPost({ key: { privateKeyPem: p256.privateKey, keyId: 'key1' }, url: 'https://target.example.com/inbox', body, additionalHeaders: {} });
 		return buildParsedSignature(sp.signingString, sp.signature, 'ecdsa-sha256');
 	})();
 
 	const p384Ps = (() => {
-		const sp = genSignedPost({ privateKeyPem: p384.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {})
+		const sp = createSignedPost({ key: { privateKeyPem: p384.privateKey, keyId: 'key1' }, url: 'https://target.example.com/inbox', body, additionalHeaders: {} });
 		return buildParsedSignature(sp.signingString, sp.signature, 'ecdsa-sha256');
 	})();
 
 	const p512Ps = (() => {
-		const sp = genSignedPost({ privateKeyPem: p512.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {})
+		const sp = createSignedPost({ key: { privateKeyPem: p512.privateKey, keyId: 'key1' }, url: 'https://target.example.com/inbox', body, additionalHeaders: {} });
 		return buildParsedSignature(sp.signingString, sp.signature, 'ecdsa-sha256');
 	})();
 
 	const k256Ps = (() => {
-		const sp = genSignedPost({ privateKeyPem: k256.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {})
+		const sp = createSignedPost({ key: { privateKeyPem: k256.privateKey, keyId: 'key1' }, url: 'https://target.example.com/inbox', body, additionalHeaders: {} });
 		return buildParsedSignature(sp.signingString, sp.signature, 'ecdsa-sha256');
 	})();
 
 	const ed25519Ps = (() => {
-		const sp = genSignedPost({ privateKeyPem: ed25519.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {})
+		const sp = createSignedPost({ key: { privateKeyPem: ed25519.privateKey, keyId: 'key1' }, url: 'https://target.example.com/inbox', body, additionalHeaders: {} });
 		return buildParsedSignature(sp.signingString, sp.signature, 'ed25519-sha512');
 	})();
 
 	const ed448Ps = (() => {
-		const sp = genSignedPost({ privateKeyPem: ed448.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {})
+		const sp = createSignedPost({ key: { privateKeyPem: ed448.privateKey, keyId: 'key1' }, url: 'https://target.example.com/inbox', body, additionalHeaders: {} });
 		return buildParsedSignature(sp.signingString, sp.signature, '');
 	})();
 
@@ -178,36 +178,36 @@ async function main() {
 		},
 
 		'sign-rsa2048': () => {
-			genSignedPost({ privateKeyPem: rsa2048.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
+			createSignedPost({ key: { privateKeyPem: rsa2048.privateKey, keyId: 'key1' }, url: 'https://target.example.com/inbox', body, additionalHeaders: {} });;
 		},
 		'sign-rsa3072': () => {
-			genSignedPost({ privateKeyPem: rsa3072.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
+			createSignedPost({ key: { privateKeyPem: rsa3072.privateKey, keyId: 'key1' }, url: 'https://target.example.com/inbox', body, additionalHeaders: {} });;
 		},
 		/*
 		'sign-rsa4096': () => {
-			genSignedPost({ privateKeyPem: rsa4096.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
+			createSignedPost({ key: { privateKeyPem: rsa4096.privateKey, keyId: 'key1' }, url: 'https://target.example.com/inbox', body, additionalHeaders: {} });;
 		},
 		'sign-rsa8192': () => {
-			genSignedPost({ privateKeyPem: rsa8192.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
+			createSignedPost({ key: { privateKeyPem: rsa8192.privateKey, keyId: 'key1' }, url: 'https://target.example.com/inbox', body, additionalHeaders: {} });;
 		},
 		*/
 		'sign-k256': () => {
-			genSignedPost({ privateKeyPem: k256.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
+			createSignedPost({ key: { privateKeyPem: k256.privateKey, keyId: 'key1' }, url: 'https://target.example.com/inbox', body, additionalHeaders: {} });;
 		},
 		'sign-p256': () => {
-			genSignedPost({ privateKeyPem: p256.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
+			createSignedPost({ key: { privateKeyPem: p256.privateKey, keyId: 'key1' }, url: 'https://target.example.com/inbox', body, additionalHeaders: {} });;
 		},
 		'sign-p384': () => {
-			genSignedPost({ privateKeyPem: p384.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
+			createSignedPost({ key: { privateKeyPem: p384.privateKey, keyId: 'key1' }, url: 'https://target.example.com/inbox', body, additionalHeaders: {} });;
 		},
 		'sign-p512': () => {
-			genSignedPost({ privateKeyPem: p512.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
+			createSignedPost({ key: { privateKeyPem: p512.privateKey, keyId: 'key1' }, url: 'https://target.example.com/inbox', body, additionalHeaders: {} });;
 		},
 		'sign-ed25519': () => {
-			genSignedPost({ privateKeyPem: ed25519.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
+			createSignedPost({ key: { privateKeyPem: ed25519.privateKey, keyId: 'key1' }, url: 'https://target.example.com/inbox', body, additionalHeaders: {} });;
 		},
 		'sign-ed448': () => {
-			genSignedPost({ privateKeyPem: ed448.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
+			createSignedPost({ key: { privateKeyPem: ed448.privateKey, keyId: 'key1' }, url: 'https://target.example.com/inbox', body, additionalHeaders: {} });;
 		},
 
 
@@ -222,7 +222,7 @@ async function main() {
 
 	/*
 	const t0 = performance.now();
-	const p = genSignedPost({ privateKeyPem: rsa2048.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
+	const p = createSignedPost({ key: { privateKeyPem: rsa2048.privateKey, keyId: 'key1' }, url: 'https://target.example.com/inbox', body, additionalHeaders: {} });;
 	const t1 = performance.now();
 	console.log( t1 - t0 );
 	*/
