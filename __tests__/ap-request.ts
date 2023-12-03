@@ -1,4 +1,3 @@
-import * as assert from 'assert';
 import { genRsaKeyPair } from '../src/keypair';
 import { createSignedPost, createSignedGet } from '../src/portable/ap-request';
 import { buildParsedSignature } from './utils';
@@ -14,13 +13,12 @@ describe('ap-request', () => {
 		const headers = {
 			'User-Agent': 'UA'
 		};
-
 		const req = createSignedPost({ key, url, body, additionalHeaders: headers });
 
 		const parsed = buildParsedSignature(req.signingString, req.signature, 'rsa-sha256');
 
 		const result = httpSignature.verifySignature(parsed, keypair.publicKey);
-		assert.deepStrictEqual(result, true);
+		expect(result).toBe(true);
 	});
 
 	it('createSignedGet with verify', async () => {
@@ -36,6 +34,6 @@ describe('ap-request', () => {
 		const parsed = buildParsedSignature(req.signingString, req.signature, 'rsa-sha256');
 
 		const result = httpSignature.verifySignature(parsed, keypair.publicKey);
-		assert.deepStrictEqual(result, true);
+		expect(result).toBe(true);
 	});
 });

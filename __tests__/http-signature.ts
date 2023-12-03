@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+
 import { genAuthorizationHeader, genSignature, genSignatureHeader, genSigningString } from '../src/http-signature';
 
 describe('HTTP Signature', () => {
@@ -13,8 +13,7 @@ describe('HTTP Signature', () => {
 			}
 		}, ['(request-target)', 'date', 'host', 'accept'])
 
-		assert.strictEqual(
-			signingString,
+		expect(signingString).toBe(
 			'(request-target): get /path\n' +
 			'date: Fri, 11 Jun 2021 16:15:11 GMT\n' +
 			'host: host1.example.com\n' +
@@ -54,8 +53,7 @@ describe('HTTP Signature', () => {
 
 		const signature = genSignature('abc', privateKey, 'sha256');
 
-		assert.strictEqual(
-			signature,
+		expect(signature).toBe(
 			'uoSHT+Vhfu4ChwY6t9dDx92daPTKxxPaTCYoPpGFhAqmUcxvImWKfetfkBLDCrXManpqz/4k6AXLtHekYXD0/MYadNG5tJCu27EHvMt0sfOv/LiYL2VBfeDJ3i+r/tMAkM/YFf8cg93TnAi70wwTifQ/fdPcvPCNrouMlSm4MDrhf56X0gIc7jNRYuVswjXpfxt+js+mfsaJUzVIFaVFemNFTaveeS+6F7z7nu4eSfxjeyLXpaJYsQS5tGaVAgk2RJEiD4PG2zGkwNA3iJKLd7Z1t9N74/8AHwVMD9HNqc/Zjd4HZt33i+GrlJbqxv+ZHPCddl4/7x5PgwmOVfdI4Q=='
 		);
 	});
@@ -63,8 +61,7 @@ describe('HTTP Signature', () => {
 	it('genAuthorizationHeader', () => {
 		const header = genAuthorizationHeader(['foo', 'bar'], 'KeyIdaaa', 'Signature', 'rsa-sha256');
 
-		assert.strictEqual(
-			header,
+		expect(header).toBe(
 			'Signature keyId="KeyIdaaa",algorithm="rsa-sha256",headers="foo bar",signature="Signature"'
 		);
 	});
@@ -72,8 +69,7 @@ describe('HTTP Signature', () => {
 	it('genSignatureHeader', () => {
 		const header = genSignatureHeader(['foo', 'bar'], 'KeyIdaaa', 'Signature', 'rsa-sha256');
 
-		assert.strictEqual(
-			header,
+		expect(header).toBe(
 			'keyId="KeyIdaaa",algorithm="rsa-sha256",headers="foo bar",signature="Signature"'
 		);
 	});
@@ -81,8 +77,7 @@ describe('HTTP Signature', () => {
 	it('genSignatureHeader algorithm omited', () => {
 		const header = genSignatureHeader(['foo', 'bar'], 'KeyIdaaa', 'Signature', undefined);
 
-		assert.strictEqual(
-			header,
+		expect(header).toBe(
 			'keyId="KeyIdaaa",algorithm="hs2019",headers="foo bar",signature="Signature"'
 		);
 	});
