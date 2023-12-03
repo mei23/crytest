@@ -12,6 +12,8 @@ export type PrivateKey = {
 };
 
 export type SignatureKeyAlgorithm = 'rsa' | 'ecdsa' | 'ed25519' | 'ed448';
+
+// sign専用
 export type SignatureHashAlgorithm = 'sha1' | 'sha256' | 'sha512';
 export type SignatureAlgorithm = 'rsa-sha1' | 'rsa-sha256' | 'rsa-sha512' | 'ecdsa-sha1' | 'ecdsa-sha256' | 'ecdsa-sha512';
 
@@ -31,7 +33,7 @@ type ParsedSignature = {
 export function verifySignature(parsed: ParsedSignature, publicKeyPem: string) {
 	let legacyKeyAlg: string | undefined;
 	let legacyHashAlg: string | undefined;
-	const m = parsed.params.algorithm?.match(/^(rsa|hmac|ecdsa)-(sha(?:1|224|256|384|512))$/);
+	const m = parsed.params.algorithm?.match(/^(rsa|ecdsa)-(sha(?:1|224|256|384|512))$/);
 	if (m) {
 		legacyKeyAlg = m[1],
 		legacyHashAlg = m[2];
@@ -39,19 +41,22 @@ export function verifySignature(parsed: ParsedSignature, publicKeyPem: string) {
 
 	const k = crypto.createPublicKey(publicKeyPem);
 
+	/* まあいらない
 	if (legacyKeyAlg) {
 		if (k.asymmetricKeyType === 'rsa' && legacyKeyAlg !== 'rsa') throw 'rsa';
 		if (k.asymmetricKeyType === 'ec' && legacyKeyAlg !== 'ecdsa') throw 'ec';
-		if (k.asymmetricKeyType === 'ed25519') throw 'ed25519';
-		if (k.asymmetricKeyType === 'ed448') throw 'ed448';
+		if (k.asymmetricKeyType === 'ed25519') throw 'ed25519'; 
+		if (k.asymmetricKeyType === 'ed448') throw 'ed448'; 
 	}
+	*/
 
+	// TODO: key, bit, curveを制限できるようにする
 	if (k.asymmetricKeyType === 'ed25519' || k.asymmetricKeyType === 'ed448') {
 		return crypto.verify(null, Buffer.from(parsed.signingString), publicKeyPem, Buffer.from(parsed.params.signature, 'base64'));
 	} else if (k.asymmetricKeyType === 'rsa') {
 		return crypto.verify(legacyHashAlg || 'sha256', Buffer.from(parsed.signingString), publicKeyPem, Buffer.from(parsed.params.signature, 'base64'));
 	} else if (k.asymmetricKeyType === 'ec') {
-		return crypto.verify(legacyHashAlg, Buffer.from(parsed.signingString), publicKeyPem, Buffer.from(parsed.params.signature, 'base64'));
+		return crypto.verify(legacyHashAlg || 'sha256', Buffer.from(parsed.signingString), publicKeyPem, Buffer.from(parsed.params.signature, 'base64'));
 	} else {
 		throw 'unsupported';
 	}
