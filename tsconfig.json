@@ -1,6 +1,7 @@
 {
 	"compilerOptions": {
 		"noEmitOnError": true,
+		"skipLibCheck": true,
 		"noImplicitAny": false,
 		"noImplicitReturns": true,
 		"noImplicitThis": true,

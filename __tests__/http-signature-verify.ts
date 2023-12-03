@@ -1,4 +1,3 @@
-import * as assert from 'assert';
 import { genSignature, verifySignature } from '../src/http-signature';
 import { genRsaKeyPair, genEcKeyPair, genEd25519KeyPair, genEd448KeyPair } from '../src/keypair';
 import { buildParsedSignature } from './utils';
@@ -10,7 +9,7 @@ describe('HTTP Signature verify', () => {
 		const signature = genSignature(signingString, keyPair.privateKey, 'sha256');
 		const parsed = buildParsedSignature(signingString, signature, 'rsa-sha256');
 		const result = verifySignature(parsed, keyPair.publicKey);
-		assert.deepStrictEqual(result, true);
+		expect(result).toBe(true);
 	});
 
 	it('rsa-sha256 algorithm omited', async () => {
@@ -19,7 +18,7 @@ describe('HTTP Signature verify', () => {
 		const signature = genSignature(signingString, keyPair.privateKey, 'sha256');
 		const parsed = buildParsedSignature(signingString, signature, undefined);
 		const result = verifySignature(parsed, keyPair.publicKey);
-		assert.deepStrictEqual(result, true);
+		expect(result).toBe(true);
 	});
 
 	it('ecdsa-sha256 prime256v1', async () => {
@@ -28,7 +27,7 @@ describe('HTTP Signature verify', () => {
 		const signature = genSignature(signingString, keyPair.privateKey, 'sha512');
 		const parsed = buildParsedSignature(signingString, signature, 'ecdsa-sha512');
 		const result = verifySignature(parsed, keyPair.publicKey);
-		assert.deepStrictEqual(result, true);
+		expect(result).toBe(true);
 	});
 
 	it('ecdsa-sha512 secp521r1', async () => {
@@ -37,7 +36,7 @@ describe('HTTP Signature verify', () => {
 		const signature = genSignature(signingString, keyPair.privateKey, 'sha512');
 		const parsed = buildParsedSignature(signingString, signature, 'ecdsa-sha512');
 		const result = verifySignature(parsed, keyPair.publicKey);
-		assert.deepStrictEqual(result, true);
+		expect(result).toBe(true);
 	});
 
 	it('ed25519', async () => {
@@ -46,7 +45,7 @@ describe('HTTP Signature verify', () => {
 		const signature = genSignature(signingString, keyPair.privateKey, null);
 		const parsed = buildParsedSignature(signingString, signature, undefined);
 		const result = verifySignature(parsed, keyPair.publicKey);
-		assert.deepStrictEqual(result, true);
+		expect(result).toBe(true);
 	});
 
 	it('ed448', async () => {
@@ -55,6 +54,6 @@ describe('HTTP Signature verify', () => {
 		const signature = genSignature(signingString, keyPair.privateKey, null);
 		const parsed = buildParsedSignature(signingString, signature, undefined);
 		const result = verifySignature(parsed, keyPair.publicKey);
-		assert.deepStrictEqual(result, true);
+		expect(result).toBe(true);
 	});
 });
