@@ -5,24 +5,48 @@ import { genEcKeyPair, genEd25519KeyPair, genEd448KeyPair, genRsaKeyPair } from 
 import * as httpSignature from 'http-signature';
 
 const data = {
-	"id": "https://origin.example.com/notes/71892bbe2438fe6d0d62d7b8",
-	"url": "https://origin.example.com/notes/71892bbe2438fe6d0d62d7b8",
-	"type": "Note",
-	"attributedTo": "https://origin.example.com/users/5dc9a9187ca6e03164b43934",
-	"summary": null,
-	"content": "<p><span>あいうえおかきくけこ</span></p>",
-	"_misskey_content": "あいうえおかきくけこ",
-	"published": "2023-07-06T15:07:08.728Z",
-	"to": [
-		"https://origin.example.com/users/5dc9a9187ca6e03164b43934/followers"
+	'@context': [
+		'https://www.w3.org/ns/activitystreams',
+		'https://w3id.org/security/v1',
+		{
+			manuallyApprovesFollowers: 'as:manuallyApprovesFollowers',
+			sensitive: 'as:sensitive',
+			Hashtag: 'as:Hashtag',
+			quoteUrl: 'as:quoteUrl',
+			toot: 'http://joinmastodon.org/ns#',
+			Emoji: 'toot:Emoji',
+			featured: 'toot:featured',
+			discoverable: 'toot:discoverable',
+			schema: 'http://schema.org#',
+			PropertyValue: 'schema:PropertyValue',
+			value: 'schema:value',
+			misskey: 'https://misskey-hub.net/ns#',
+			_misskey_content: 'misskey:_misskey_content',
+			_misskey_quote: 'misskey:_misskey_quote',
+			_misskey_reaction: 'misskey:_misskey_reaction',
+			_misskey_votes: 'misskey:_misskey_votes',
+			_misskey_talk: 'misskey:_misskey_talk',
+			isCat: 'misskey:isCat',
+			vcard: 'http://www.w3.org/2006/vcard/ns#'
+		}
 	],
-	"cc": [
-		"https://www.w3.org/ns/activitystreams#Public"
-	],
-	"inReplyTo": null,
-	"attachment": [],
-	"sensitive": false,
-	"tag": []
+	id: 'https://mi12.m213.xyz/notes/9mspkxq26c',
+	type: 'Note',
+	attributedTo: 'https://mi12.m213.xyz/users/9mr3df4vbf',
+	summary: null,
+	content: '<p><span>あいうえおかきくけこさしすせそあいうえおかきくけこさしすせそ</span></p>',
+	_misskey_content: 'あいうえおかきくけこさしすせそあいうえおかきくけこさしすせそ',
+	source: {
+		content: 'あいうえおかきくけこさしすせそあいうえおかきくけこさしすせそ',
+		mediaType: 'text/x.misskeymarkdown'
+	},
+	published: '2023-12-03T07:11:48.410Z',
+	to: [ 'https://www.w3.org/ns/activitystreams#Public' ],
+	cc: [ 'https://mi12.m213.xyz/users/9mr3df4vbf/followers' ],
+	inReplyTo: null,
+	attachment: [],
+	sensitive: false,
+	tag: []
 };
 
 async function main() {
@@ -30,6 +54,7 @@ async function main() {
 
 	// generate keys
 	const rsa2048 = await genRsaKeyPair(2048);
+	const rsa3072 = await genRsaKeyPair(3072);
 	const rsa4096 = await genRsaKeyPair(4096);
 	const rsa8192 = await genRsaKeyPair(8192);
 	const p256 = await genEcKeyPair('prime256v1');	// NIST P-256
@@ -42,6 +67,11 @@ async function main() {
 	// generate parsedSignatures
 	const rsa2048Ps = (() => {
 		const sp = genSignedPost({ privateKeyPem: rsa2048.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {})
+		return buildParsedSignature(sp.signingString, sp.signature, 'rsa-sha256');
+	})();
+
+	const rsa3072Ps = (() => {
+		const sp = genSignedPost({ privateKeyPem: rsa3072.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {})
 		return buildParsedSignature(sp.signingString, sp.signature, 'rsa-sha256');
 	})();
 
@@ -77,7 +107,7 @@ async function main() {
 
 	const ed25519Ps = (() => {
 		const sp = genSignedPost({ privateKeyPem: ed25519.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {})
-		return buildParsedSignature(sp.signingString, sp.signature, 'ed25519');
+		return buildParsedSignature(sp.signingString, sp.signature, 'ed25519-sha512');
 	})();
 
 	const ed448Ps = (() => {
@@ -86,7 +116,7 @@ async function main() {
 	})();
 
 
-	console.log(verifySignature(ed25519Ps, ed25519.publicKey));
+	//console.log(verifySignature(ed25519Ps, ed25519.publicKey));
 
 	const marks = {
 		'sha256': () => {
@@ -94,6 +124,9 @@ async function main() {
 		},
 		'veri-rsa2048-joyent': () => {
 			httpSignature.verifySignature(rsa2048Ps, rsa2048.publicKey);
+		},
+		'veri-rsa3072-joyent': () => {
+			httpSignature.verifySignature(rsa3072Ps, rsa3072.publicKey);
 		},
 		'veri-rsa4096-joyent': () => {
 			httpSignature.verifySignature(rsa4096Ps, rsa4096.publicKey);
@@ -110,10 +143,15 @@ async function main() {
 		'veri-p512-joyent': () => {
 			httpSignature.verifySignature(p512Ps, p512.publicKey);
 		},
+		'veri-ed25519-joyent': () => {
+			httpSignature.verifySignature(ed25519Ps, ed25519.publicKey);
+		},
 
-	
 		'veri-rsa2048': () => {
 			verifySignature(rsa2048Ps, rsa2048.publicKey);
+		},
+		'veri-rsa3072': () => {
+			verifySignature(rsa3072Ps, rsa3072.publicKey);
 		},
 		'veri-rsa4096': () => {
 			verifySignature(rsa4096Ps, rsa4096.publicKey);
@@ -142,6 +180,9 @@ async function main() {
 
 		'sign-rsa2048': () => {
 			genSignedPost({ privateKeyPem: rsa2048.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
+		},
+		'sign-rsa3072': () => {
+			genSignedPost({ privateKeyPem: rsa3072.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
 		},
 		'sign-rsa4096': () => {
 			genSignedPost({ privateKeyPem: rsa4096.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
@@ -172,11 +213,10 @@ async function main() {
 	};
 
 	for (const key of Object.keys(marks)) {
-		console.log(key);
 		const t0 = performance.now();
 		for (let i = 0; i < 1000; i++) marks[key]();
 		const t1 = performance.now();
-		console.log( t1 - t0 );
+		console.log(`${key}\t${t1 - t0}`);
 	}
 
 	/*
