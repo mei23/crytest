@@ -184,12 +184,14 @@ async function main() {
 		'sign-rsa3072': () => {
 			genSignedPost({ privateKeyPem: rsa3072.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
 		},
+		/*
 		'sign-rsa4096': () => {
 			genSignedPost({ privateKeyPem: rsa4096.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
 		},
 		'sign-rsa8192': () => {
 			genSignedPost({ privateKeyPem: rsa8192.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
 		},
+		*/
 		'sign-k256': () => {
 			genSignedPost({ privateKeyPem: k256.privateKey, keyId: 'key1' }, 'https://target.example.com/inbox', body, {});
 		},
@@ -214,7 +216,7 @@ async function main() {
 
 	for (const key of Object.keys(marks)) {
 		const t0 = performance.now();
-		for (let i = 0; i < 1000; i++) marks[key]();
+		for (let i = 0; i < 10000; i++) marks[key]();
 		const t1 = performance.now();
 		console.log(`${key}\t${t1 - t0}`);
 	}
