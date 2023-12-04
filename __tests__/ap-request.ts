@@ -13,6 +13,7 @@ describe('ap-request', () => {
 		const headers = {
 			'User-Agent': 'UA'
 		};
+
 		const req = createSignedPost({ key, url, body, additionalHeaders: headers });
 
 		const parsed = buildParsedSignature(req.signingString, req.signature, 'rsa-sha256');
