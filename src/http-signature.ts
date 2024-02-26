@@ -14,8 +14,8 @@ export type PrivateKey = {
 export type SignatureKeyAlgorithm = 'rsa' | 'ecdsa' | 'ed25519' | 'ed448';
 
 // sign専用
-export type SignatureHashAlgorithm = 'sha1' | 'sha256' | 'sha512';
-export type SignatureAlgorithm = 'rsa-sha1' | 'rsa-sha256' | 'rsa-sha512' | 'ecdsa-sha1' | 'ecdsa-sha256' | 'ecdsa-sha512';
+export type SignatureHashAlgorithm = 'sha1' | 'sha256' | 'sha384' | 'sha512';
+export type SignatureAlgorithm = 'rsa-sha1' | 'rsa-sha256' | 'rsa-sha384' | 'rsa-sha512' | 'ecdsa-sha1' | 'ecdsa-sha256' | 'ecdsa-sha384' | 'ecdsa-sha512';
 
 type ParsedSignature = {
 	scheme: 'Signature';
@@ -30,36 +30,57 @@ type ParsedSignature = {
 	keyId: string;
 };
 
-export function verifySignature(parsed: ParsedSignature, publicKeyPem: string) {
-	let legacyKeyAlg: string | undefined;
-	let legacyHashAlg: string | undefined;
-	const m = parsed.params.algorithm?.match(/^(rsa|ecdsa)-(sha(?:1|224|256|384|512))$/);
+/**
+ * ヘッダーのアルゴリズムから鍵とハッシュアルゴリズムを認識する
+ * @param algorithm ヘッダーのアルゴリズム
+ * @param key 実際公開鍵 (ヘッダーで明示されていない場合のヒント)
+ */
+export function detectAlgorithm(algorithm: string | undefined, publicKey?: crypto.KeyObject ): { keyAlg: SignatureKeyAlgorithm, hashAlg: SignatureHashAlgorithm | null } {
+	// ed25519
+	if (algorithm === 'ed25519' || algorithm === 'ed25519-sha512') {	// ed25519-sha512 はjoyent実装が使うかも
+		return {
+			keyAlg: 'ed25519',
+			hashAlg: null,	// ハッシュ関数は固定
+		}
+	}
+
+	// ed448
+	if (algorithm === 'ed448') {
+		return {
+			keyAlg: 'ed448',
+			hashAlg: null,	// ハッシュ関数は固定
+		}
+	}
+
+	// rsa, ecdsa
+	const m = algorithm?.match(/^(rsa|ecdsa)-(sha(?:256|384|512))$/);
 	if (m) {
-		legacyKeyAlg = m[1],
-		legacyHashAlg = m[2];
+		return {
+			keyAlg: m[1] as SignatureKeyAlgorithm,
+			hashAlg: m[2] as SignatureHashAlgorithm,
+		}
 	}
 
-	const k = crypto.createPublicKey(publicKeyPem);
+	// RFC 9421
+	if (algorithm === 'rsa-v1_5-sha256') return { keyAlg: 'rsa', hashAlg: 'sha256' }
+	if (algorithm === 'ecdsa-p256-sha256') return { keyAlg: 'ecdsa', hashAlg: 'sha256' }
+	if (algorithm === 'ecdsa-p384-sha384') return { keyAlg: 'ecdsa', hashAlg: 'sha384' }
 
-	/* まあいらない
-	if (legacyKeyAlg) {
-		if (k.asymmetricKeyType === 'rsa' && legacyKeyAlg !== 'rsa') throw 'rsa';
-		if (k.asymmetricKeyType === 'ec' && legacyKeyAlg !== 'ecdsa') throw 'ec';
-		if (k.asymmetricKeyType === 'ed25519') throw 'ed25519'; 
-		if (k.asymmetricKeyType === 'ed448') throw 'ed448'; 
+	// バグ (Crystal版pub-relay) や 中途仕様のhs2019を実装したもののため
+	if (algorithm == null || algorithm === 'hs2019') {
+		if (publicKey.asymmetricKeyType === 'ed25519') return { keyAlg: 'ed25519', hashAlg: null }
+		if (publicKey.asymmetricKeyType === 'ed448') return { keyAlg: 'ed448', hashAlg: null }
+		if (publicKey.asymmetricKeyType === 'ec') return { keyAlg: 'ecdsa', hashAlg: 'sha256' }
+		if (publicKey.asymmetricKeyType === 'rsa') return { keyAlg: 'rsa', hashAlg: 'sha256' }
 	}
-	*/
 
-	// TODO: key, bit, curveを制限できるようにする
-	if (k.asymmetricKeyType === 'ed25519' || k.asymmetricKeyType === 'ed448') {
-		return crypto.verify(null, Buffer.from(parsed.signingString), publicKeyPem, Buffer.from(parsed.params.signature, 'base64'));
-	} else if (k.asymmetricKeyType === 'rsa') {
-		return crypto.verify(legacyHashAlg || 'sha256', Buffer.from(parsed.signingString), publicKeyPem, Buffer.from(parsed.params.signature, 'base64'));
-	} else if (k.asymmetricKeyType === 'ec') {
-		return crypto.verify(legacyHashAlg || 'sha256', Buffer.from(parsed.signingString), publicKeyPem, Buffer.from(parsed.params.signature, 'base64'));
-	} else {
-		throw 'unsupported';
-	}
+	throw new Error('Unsupported algorithm');
+}
+
+export function verifySignature(parsed: ParsedSignature, publicKeyPem: string) {
+	const publicKey = crypto.createPublicKey(publicKeyPem);
+	const detected = detectAlgorithm(parsed.params.algorithm, publicKey);
+	return crypto.verify(detected.hashAlg, Buffer.from(parsed.signingString), publicKey, Buffer.from(parsed.params.signature, 'base64'));
 }
 
 export function signToRequest(request: Request, key: PrivateKey, includeHeaders: string[], opts: { hashAlgorithm?: SignatureHashAlgorithm } = {}) {
