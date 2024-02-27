@@ -48,6 +48,15 @@ describe('HTTP Signature verify', () => {
 		expect(result).toBe(true);
 	});
 
+	it('ed25519-sha512', async () => {
+		const keyPair = await genEd25519KeyPair();
+		const signingString = 'foo';
+		const signature = genSignature(signingString, keyPair.privateKey, null);
+		const parsed = buildParsedSignature(signingString, signature, 'ed25519-sha512');
+		const result = verifySignature(parsed, keyPair.publicKey);
+		expect(result).toBe(true);
+	});
+
 	it('ed448', async () => {
 		const keyPair = await genEd448KeyPair();
 		const signingString = 'foo';

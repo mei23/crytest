@@ -1,6 +1,6 @@
 import { genSignature } from '../src/http-signature';
 import { genRsaKeyPair, genEcKeyPair, genEd25519KeyPair, genEd448KeyPair } from '../src/keypair';
-import * as httpSignature from 'http-signature';
+import * as httpSignature from '@peertube/http-signature';
 import { buildParsedSignature } from './utils';
 
 describe('HTTP Signature verify by joyent', () => {
@@ -45,6 +45,15 @@ describe('HTTP Signature verify by joyent', () => {
 		const signingString = 'foo';
 		const signature = genSignature(signingString, keyPair.privateKey, null);
 		const parsed = buildParsedSignature(signingString, signature, 'ed25519-sha512');
+		const result = httpSignature.verifySignature(parsed, keyPair.publicKey);
+		expect(result).toBe(true);
+	});
+
+	it('ed25519', async () => {
+		const keyPair = await genEd25519KeyPair();
+		const signingString = 'foo';
+		const signature = genSignature(signingString, keyPair.privateKey, null);
+		const parsed = buildParsedSignature(signingString, signature, 'ed25519');
 		const result = httpSignature.verifySignature(parsed, keyPair.publicKey);
 		expect(result).toBe(true);
 	});

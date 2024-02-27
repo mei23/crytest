@@ -18,9 +18,9 @@ export type PrivateKey = {
 
 export type SignatureKeyAlgorithm = 'rsa' | 'ecdsa' | 'ed25519' | 'ed448';
 
-// sign専用
 export type SignatureHashAlgorithm = 'sha1' | 'sha256' | 'sha384' | 'sha512';
-export type SignatureAlgorithm = 'rsa-sha1' | 'rsa-sha256' | 'rsa-sha384' | 'rsa-sha512' | 'ecdsa-sha1' | 'ecdsa-sha256' | 'ecdsa-sha384' | 'ecdsa-sha512' | 'ed25519' | 'ed448';
+// sign専用
+export type SignatureAlgorithm = 'rsa-sha1' | 'rsa-sha256' | 'rsa-sha384' | 'rsa-sha512' | 'ecdsa-sha1' | 'ecdsa-sha256' | 'ecdsa-sha384' | 'ecdsa-sha512' | 'ed25519-sha512' | 'ed25519' | 'ed448';
 
 type ParsedSignature = {
 	scheme: 'Signature';
@@ -101,7 +101,12 @@ export function signToRequest(request: Request, key: PrivateKey, includeHeaders:
 		signatureAlgorithm = `${keyAlgorithm}-${hashAlgorithm}`;
 	}
 
-	if (keyAlgorithm === 'ed25519' || keyAlgorithm === 'ed448') {
+	// TODO: -sha512付けたくないがjoyentが認識しない
+	if (keyAlgorithm === 'ed25519') {
+		signatureAlgorithm = `${keyAlgorithm}-sha512`;
+	}
+
+	if (keyAlgorithm === 'ed448') {
 		signatureAlgorithm = keyAlgorithm;
 	}
 

@@ -1,7 +1,7 @@
 import { genRsaKeyPair } from '../src/keypair';
 import { createSignedPost, createSignedGet } from '../src/portable/ap-request';
 import { buildParsedSignature } from './utils';
-import * as httpSignature from 'http-signature';
+import * as httpSignature from '@peertube/http-signature';
 
 describe('ap-request', () => {
 	it('createSignedPost with verify', async () => {
