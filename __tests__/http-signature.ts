@@ -73,12 +73,4 @@ describe('HTTP Signature', () => {
 			'keyId="KeyIdaaa",algorithm="rsa-sha256",headers="foo bar",signature="Signature"'
 		);
 	});
-
-	it('genSignatureHeader algorithm omited', () => {
-		const header = genSignatureHeader(['foo', 'bar'], 'KeyIdaaa', 'Signature', undefined);
-
-		expect(header).toBe(
-			'keyId="KeyIdaaa",algorithm="hs2019",headers="foo bar",signature="Signature"'
-		);
-	});
 });

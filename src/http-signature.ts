@@ -15,7 +15,7 @@ export type SignatureKeyAlgorithm = 'rsa' | 'ecdsa' | 'ed25519' | 'ed448';
 
 // sign専用
 export type SignatureHashAlgorithm = 'sha1' | 'sha256' | 'sha384' | 'sha512';
-export type SignatureAlgorithm = 'rsa-sha1' | 'rsa-sha256' | 'rsa-sha384' | 'rsa-sha512' | 'ecdsa-sha1' | 'ecdsa-sha256' | 'ecdsa-sha384' | 'ecdsa-sha512';
+export type SignatureAlgorithm = 'rsa-sha1' | 'rsa-sha256' | 'rsa-sha384' | 'rsa-sha512' | 'ecdsa-sha1' | 'ecdsa-sha256' | 'ecdsa-sha384' | 'ecdsa-sha512' | 'ed25519' | 'ed448';
 
 type ParsedSignature = {
 	scheme: 'Signature';
@@ -140,12 +140,8 @@ export function genAuthorizationHeader(includeHeaders: string[], keyId: string, 
 	return `Signature ${genSignatureHeader(includeHeaders, keyId, signature, hashAlgorithm)}`;
 }
 
-export function genSignatureHeader(includeHeaders: string[], keyId: string, signature: string, algorithm: SignatureAlgorithm | undefined) {
-	if (algorithm) {
-		return `keyId="${keyId}",algorithm="${algorithm}",headers="${includeHeaders.join(' ')}",signature="${signature}"`;
-	} else {
-		return `keyId="${keyId}",algorithm="hs2019",headers="${includeHeaders.join(' ')}",signature="${signature}"`;
-	}
+export function genSignatureHeader(includeHeaders: string[], keyId: string, signature: string, algorithm: SignatureAlgorithm) {
+	return `keyId="${keyId}",algorithm="${algorithm}",headers="${includeHeaders.join(' ')}",signature="${signature}"`;
 }
 
 export function detectKeyAlgorithm(privateKey: string): SignatureKeyAlgorithm {

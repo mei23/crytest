@@ -43,7 +43,7 @@ describe('HTTP Signature verify', () => {
 		const keyPair = await genEd25519KeyPair();
 		const signingString = 'foo';
 		const signature = genSignature(signingString, keyPair.privateKey, null);
-		const parsed = buildParsedSignature(signingString, signature, undefined);
+		const parsed = buildParsedSignature(signingString, signature, 'ed25519');
 		const result = verifySignature(parsed, keyPair.publicKey);
 		expect(result).toBe(true);
 	});
@@ -52,7 +52,7 @@ describe('HTTP Signature verify', () => {
 		const keyPair = await genEd448KeyPair();
 		const signingString = 'foo';
 		const signature = genSignature(signingString, keyPair.privateKey, null);
-		const parsed = buildParsedSignature(signingString, signature, undefined);
+		const parsed = buildParsedSignature(signingString, signature, 'ed448');
 		const result = verifySignature(parsed, keyPair.publicKey);
 		expect(result).toBe(true);
 	});

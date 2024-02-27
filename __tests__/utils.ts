@@ -13,7 +13,7 @@ type ParsedSignature = {
 	keyId: string;
 };
 
-export const buildParsedSignature = (signingString: string, signature: string, algorithm: string) => {
+export const buildParsedSignature = (signingString: string, signature: string, algorithm: string | undefined) => {
 	return {
 		scheme: 'Signature',
 		params: {
