@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: mei23
+ * SPDX-License-Identifier: MIT
+ */
+
 import * as crypto from 'crypto';
 
 export type Request = {
@@ -29,6 +34,12 @@ type ParsedSignature = {
 	algorithm?: string;	// 'RSA-SHA256'
 	keyId: string;
 };
+
+export function verifySignature(parsed: ParsedSignature, publicKeyPem: string) {
+	const publicKey = crypto.createPublicKey(publicKeyPem);
+	const detected = detectAlgorithm(parsed.params.algorithm, publicKey);
+	return crypto.verify(detected.hashAlg, Buffer.from(parsed.signingString), publicKey, Buffer.from(parsed.params.signature, 'base64'));
+}
 
 /**
  * ヘッダーのアルゴリズムから鍵とハッシュアルゴリズムを認識する
@@ -77,12 +88,6 @@ export function detectAlgorithm(algorithm: string | undefined, publicKey?: crypt
 	throw new Error('Unsupported algorithm');
 }
 
-export function verifySignature(parsed: ParsedSignature, publicKeyPem: string) {
-	const publicKey = crypto.createPublicKey(publicKeyPem);
-	const detected = detectAlgorithm(parsed.params.algorithm, publicKey);
-	return crypto.verify(detected.hashAlg, Buffer.from(parsed.signingString), publicKey, Buffer.from(parsed.params.signature, 'base64'));
-}
-
 export function signToRequest(request: Request, key: PrivateKey, includeHeaders: string[], opts: { hashAlgorithm?: SignatureHashAlgorithm } = {}) {
 	const hashAlgorithm = opts?.hashAlgorithm || 'sha256';
 	const keyAlgorithm = detectKeyAlgorithm(key.privateKeyPem);
@@ -91,9 +96,13 @@ export function signToRequest(request: Request, key: PrivateKey, includeHeaders:
 	const signature = genSignature(signingString, key.privateKeyPem,
 			(keyAlgorithm === 'ed25519' || keyAlgorithm === 'ed448') ? null : hashAlgorithm);
 
-	let signatureAlgorithm: SignatureAlgorithm | undefined;
+	let signatureAlgorithm: SignatureAlgorithm;
 	if (keyAlgorithm === 'rsa' || keyAlgorithm === 'ecdsa') {
-		signatureAlgorithm = `${keyAlgorithm}-${hashAlgorithm}` as const;
+		signatureAlgorithm = `${keyAlgorithm}-${hashAlgorithm}`;
+	}
+
+	if (keyAlgorithm === 'ed25519' || keyAlgorithm === 'ed448') {
+		signatureAlgorithm = keyAlgorithm;
 	}
 
 	const signatureHeader = genSignatureHeader(includeHeaders, key.keyId, signature, signatureAlgorithm);

@@ -1,6 +1,6 @@
 import { inspect } from 'util';
 import { genSignature, genSignatureHeader, genSigningString, Request, signToRequest } from '../http-signature';
-import { genEd448KeyPair, genRsaKeyPair } from '../keypair';
+import { genEd25519KeyPair, genEd448KeyPair, genRsaKeyPair } from '../keypair';
 
 async function main() {
 	const keypair = await genRsaKeyPair();
@@ -30,7 +30,7 @@ async function main() {
 		signatureHeader,
 	}));
 
-	const kp = await genEd448KeyPair();
+	const kp = await genEd25519KeyPair();
 
 	const re = signToRequest(request, { privateKeyPem: kp.privateKey, keyId: 'key1' }, includeHeaders);
 	console.log(inspect(request));

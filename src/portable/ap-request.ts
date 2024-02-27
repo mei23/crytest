@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: mei23
+ * SPDX-License-Identifier: MIT
+ */
+
 // rsa-sha256でsignする部分のみ取り出したポータブル版
 
 import * as crypto from 'crypto';
