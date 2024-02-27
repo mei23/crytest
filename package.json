@@ -10,7 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "typescript": "5.3.2"
+    "typescript": "5.3.3"
   },
   "devDependencies": {
     "@peertube/http-signature": "^1.7.0",
