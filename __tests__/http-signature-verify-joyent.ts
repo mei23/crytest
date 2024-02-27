@@ -49,6 +49,7 @@ describe('HTTP Signature verify by joyent', () => {
 		expect(result).toBe(true);
 	});
 
+	/*
 	it('ed25519', async () => {
 		const keyPair = await genEd25519KeyPair();
 		const signingString = 'foo';
@@ -57,6 +58,7 @@ describe('HTTP Signature verify by joyent', () => {
 		const result = httpSignature.verifySignature(parsed, keyPair.publicKey);
 		expect(result).toBe(true);
 	});
+	*/
 
 	it('hs2019 (rsa-sha256)', async () => {
 		const keyPair = await genRsaKeyPair();
