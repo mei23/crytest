@@ -1,5 +1,6 @@
 {
   "name": "crytest",
+	"author": "mei23",
   "version": "1.0.0",
   "description": "",
   "main": "built/index.js",
